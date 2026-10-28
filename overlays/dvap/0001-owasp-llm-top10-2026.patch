@@ -1,0 +1,225 @@
+From a3349a603668605946aedc06194380ca7d534850 Mon Sep 17 00:00:00 2001
+From: Animesh Shaw <animeshshaw@pm.me>
+Date: Wed, 28 Oct 2026 09:55:04 +0000
+Subject: [PATCH] Update OWASP mapping to the LLM Top 10 2026 edition
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The OWASP category list in report_service.py is still the 2023 edition —
+Insecure Output Handling, Training Data Poisoning, Model Denial of Service,
+Insecure Plugin Design, Overreliance and Model Theft were all superseded by
+the 2025 list and again by the 2026 edition published on 2026-08-03. Reports
+generated today therefore map findings to categories that no longer exist.
+
+Updates the canonical list to the 2026 edition:
+
+  2023                              2026
+  LLM01 Prompt Injection         -> LLM01 Prompt Injection
+  LLM02 Insecure Output Handling -> LLM10 Improper Output Handling
+  LLM03 Training Data Poisoning  -> LLM05 Data and Model Poisoning
+  LLM04 Model Denial of Service  -> LLM06 Unbounded Consumption
+  LLM05 Supply-Chain Vulns       -> LLM04 Supply Chain
+  LLM06 Sensitive Info Disclosure-> LLM02 Sensitive Information Disclosure
+  LLM07 Insecure Plugin Design   -> folded into LLM01 / LLM03
+  LLM08 Excessive Agency         -> LLM03 Excessive Agency
+  LLM09 Overreliance             -> LLM07 Misinformation
+  LLM10 Model Theft              -> no longer an OWASP category
+
+New in the current list and now represented: LLM08 Hidden Context Exposure
+and LLM09 Vector and Embedding Weaknesses.
+
+Changes:
+- backend/app/services/report_service.py: OWASP_LLM_TOP10 replaced with the
+  2026 entries, each lab association carried across to the renumbered risk.
+- frontend threat-models/page.tsx: per-lab codes remapped to match.
+- README: per-lab OWASP column, the coverage table, and the coverage total.
+  Coverage reads 7 of 10 rather than 8 of 10, because Model Theft is gone as
+  a category while Misinformation and Hidden Context Exposure are now listed
+  with no dedicated lab. The RAG Poisoning lab picks up LLM09, which had no
+  2023 equivalent.
+
+Two judgment calls worth your review, since they are about lab content
+rather than the standard:
+- Memory Poisoning now maps to LLM05 Data and Model Poisoning (it previously
+  sat under Excessive Agency and Sensitive Information Disclosure in the
+  frontend map, which looked like a poor fit).
+- RAG Poisoning picks up LLM09 Vector and Embedding Weaknesses alongside
+  LLM05. Happy to adjust either if your labs behave differently than their
+  names suggest.
+
+Also fixes a pre-existing inconsistency: the frontend mapped
+autonomous_agent to the old LLM04 (Model Denial of Service) while the
+backend list had no labs under it. It is now LLM03 only, matching both the
+backend list and the README.
+
+MITRE ATLAS technique mappings are unchanged. Challenge content, flags and
+lab behaviour are untouched — this is a labelling change only.
+
+Verified: report_service imports and the list parses to 10 entries in
+LLM01..LLM10 order; frontend codes reference only categories the backend
+list marks as covered.
+
+Signed-off-by: Animesh Shaw <animeshshaw@pm.me>
+---
+ README.md                                     | 57 ++++++++++---------
+ backend/app/services/report_service.py        | 21 ++++---
+ .../app/(dashboard)/threat-models/page.tsx    | 30 +++++-----
+ 3 files changed, 57 insertions(+), 51 deletions(-)
+
+diff --git a/README.md b/README.md
+index c01c043..98f63dd 100644
+--- a/README.md
++++ b/README.md
+@@ -240,20 +240,20 @@ Run everything on your own machine. Your prompts, data, findings, and experiment
+ | Lab | Difficulty | OWASP LLM | MITRE ATLAS |
+ |---|---|---|---|
+ | Prompt Injection | Beginner | LLM01 | AML.T0051, AML.T0054 |
+-| Memory Poisoning | Intermediate | LLM02 | AML.T0054 |
+-| RAG Poisoning | Intermediate | LLM02, LLM03 | AML.T0020, AML.T0043 |
+-| Tool Output Injection | Intermediate | LLM07 | AML.T0054, AML.T0068 |
+-| MCP Security | Advanced | LLM07 | AML.T0068 |
+-| Browser Agent Security | Advanced | LLM07, LLM09 | AML.T0054 |
+-| Multi-Agent Security | Advanced | LLM08 | AML.T0054 |
+-| Autonomous Agent Security | Advanced | LLM08, LLM09 | AML.T0054 |
+-| Data Exfiltration | Advanced | LLM06 | AML.T0057, AML.T0058 |
+-| Agent Identity and Trust Abuse | Advanced | LLM08 | AML.T0058 |
+-| AI Banking Platform | Intermediate | LLM01, LLM06 | AML.T0043 |
+-| AI Healthcare Environment | Advanced | LLM01, LLM06 | AML.T0043 |
+-| Multi-Tenant AI SaaS | Advanced | LLM06 | AML.T0043 |
+-| AI Supply Chain Security | Expert | LLM03, LLM05 | AML.T0010, AML.T0048 |
+-| AI Developer Platform | Expert | LLM03, LLM07 | AML.T0010, AML.T0068 |
++| Memory Poisoning | Intermediate | LLM05, LLM03 | AML.T0054 |
++| RAG Poisoning | Intermediate | LLM09, LLM05 | AML.T0020, AML.T0043 |
++| Tool Output Injection | Intermediate | LLM01, LLM03 | AML.T0054, AML.T0068 |
++| MCP Security | Advanced | LLM01, LLM03 | AML.T0068 |
++| Browser Agent Security | Advanced | LLM03, LLM10 | AML.T0054 |
++| Multi-Agent Security | Advanced | LLM03 | AML.T0054 |
++| Autonomous Agent Security | Advanced | LLM03 | AML.T0054 |
++| Data Exfiltration | Advanced | LLM02, LLM10 | AML.T0057, AML.T0058 |
++| Agent Identity and Trust Abuse | Advanced | LLM03, LLM02 | AML.T0058 |
++| AI Banking Platform | Intermediate | LLM01, LLM02 | AML.T0043 |
++| AI Healthcare Environment | Advanced | LLM01, LLM02 | AML.T0043 |
++| Multi-Tenant AI SaaS | Advanced | LLM02 | AML.T0043 |
++| AI Supply Chain Security | Expert | LLM04, LLM05 | AML.T0010, AML.T0048 |
++| AI Developer Platform | Expert | LLM01, LLM04 | AML.T0010, AML.T0068 |
+ 
+ Each lab runs in an isolated Docker container with its own Ollama-backed LLM endpoint.
+ 
+@@ -261,22 +261,25 @@ Each lab runs in an isolated Docker container with its own Ollama-backed LLM end
+ 
+ ## OWASP LLM Top 10 Coverage
+ 
+-DVAP is aligned with the [OWASP Top 10 for Large Language Model Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/). Each category maps to one or more dedicated labs.
++DVAP is aligned with the [OWASP Top 10 for LLM Applications, 2026 edition](https://genai.owasp.org/llm-top-10/) (published 2026-08-03). Each category maps to one or more dedicated labs.
+ 
+ | Category | Name | Labs | Status |
+ |---|---|---|---|
+-| LLM01 | Prompt Injection | Prompt Injection, AI Banking Platform, AI Healthcare Environment | Covered |
+-| LLM02 | Data and Memory Poisoning | Memory Poisoning, RAG Poisoning | Covered |
+-| LLM03 | Supply Chain and Training Data Risks | RAG Poisoning, AI Supply Chain Security, AI Developer Platform | Covered |
+-| LLM04 | Model Denial of Service | | Planned (v1.2) |
+-| LLM05 | Insecure Supply Chain | AI Supply Chain Security | Covered |
+-| LLM06 | Sensitive Information Disclosure | Data Exfiltration, AI Banking Platform, AI Healthcare Environment, Multi-Tenant AI SaaS | Covered |
+-| LLM07 | Insecure Plugin Design | Tool Output Injection, MCP Security, Browser Agent Security, AI Developer Platform | Covered |
+-| LLM08 | Excessive Agency | Multi-Agent Security, Autonomous Agent Security, Agent Identity and Trust Abuse | Covered |
+-| LLM09 | Overreliance | Browser Agent Security, Autonomous Agent Security | Covered |
+-| LLM10 | Model Theft | | Planned (v1.2) |
+-
+-8 of 10 categories covered across 15 labs. LLM04 and LLM10 are on the v1.2 roadmap.
++| LLM01 | Prompt Injection | Prompt Injection, Tool Output Injection, MCP Security, AI Banking Platform, AI Healthcare Environment, AI Developer Platform | Covered |
++| LLM02 | Sensitive Information Disclosure | Data Exfiltration, AI Banking Platform, AI Healthcare Environment, Multi-Tenant AI SaaS, Agent Identity and Trust Abuse | Covered |
++| LLM03 | Excessive Agency | Multi-Agent Security, Autonomous Agent Security, Agent Identity and Trust Abuse, Browser Agent Security, MCP Security, Tool Output Injection | Covered |
++| LLM04 | Supply Chain | AI Supply Chain Security, AI Developer Platform | Covered |
++| LLM05 | Data and Model Poisoning | RAG Poisoning, Memory Poisoning, AI Supply Chain Security | Covered |
++| LLM06 | Unbounded Consumption | | Planned |
++| LLM07 | Misinformation | | Planned |
++| LLM08 | Hidden Context Exposure | | Planned |
++| LLM09 | Vector and Embedding Weaknesses | RAG Poisoning | Covered |
++| LLM10 | Improper Output Handling | Data Exfiltration, Browser Agent Security | Covered |
++
++7 of 10 categories covered across 15 labs. LLM06 (Unbounded Consumption), LLM07
++(Misinformation) and LLM08 (Hidden Context Exposure) have no dedicated lab yet.
++Note that Model Theft, covered by the roadmap's v1.2 entry against the old list,
++is no longer an OWASP category in the 2026 edition.
+ 
+ ---
+ 
+diff --git a/backend/app/services/report_service.py b/backend/app/services/report_service.py
+index a97089a..ac6381d 100644
+--- a/backend/app/services/report_service.py
++++ b/backend/app/services/report_service.py
+@@ -55,17 +55,20 @@ _HTML_TEMPLATE = """\
+ </html>
+ """
+ 
++# OWASP Top 10 for LLM Applications, 2026 edition (published 2026-08-03).
++# Supersedes the 2025 list; eight of ten entries changed rank and System Prompt
++# Leakage was renamed and broadened to Hidden Context Exposure.
+ OWASP_LLM_TOP10 = [
+     {"id": "LLM01", "name": "Prompt Injection", "categories": ["prompt_injection", "tool_injection"]},
+-    {"id": "LLM02", "name": "Insecure Output Handling", "categories": ["data_exfiltration", "browser_agent"]},
+-    {"id": "LLM03", "name": "Training Data Poisoning", "categories": ["rag_poisoning", "supply_chain"]},
+-    {"id": "LLM04", "name": "Model Denial of Service", "categories": []},
+-    {"id": "LLM05", "name": "Supply-Chain Vulnerabilities", "categories": ["supply_chain"]},
+-    {"id": "LLM06", "name": "Sensitive Information Disclosure", "categories": ["data_exfiltration", "healthcare", "banking"]},
+-    {"id": "LLM07", "name": "Insecure Plugin Design", "categories": ["mcp_security", "tool_injection"]},
+-    {"id": "LLM08", "name": "Excessive Agency", "categories": ["autonomous_agent", "multi_agent", "browser_agent"]},
+-    {"id": "LLM09", "name": "Overreliance", "categories": []},
+-    {"id": "LLM10", "name": "Model Theft", "categories": ["supply_chain"]},
++    {"id": "LLM02", "name": "Sensitive Information Disclosure", "categories": ["data_exfiltration", "healthcare", "banking", "multi_tenant"]},
++    {"id": "LLM03", "name": "Excessive Agency", "categories": ["autonomous_agent", "multi_agent", "browser_agent", "mcp_security", "tool_injection", "identity_trust"]},
++    {"id": "LLM04", "name": "Supply Chain", "categories": ["supply_chain", "developer_platform"]},
++    {"id": "LLM05", "name": "Data and Model Poisoning", "categories": ["rag_poisoning", "memory_poisoning", "supply_chain"]},
++    {"id": "LLM06", "name": "Unbounded Consumption", "categories": []},
++    {"id": "LLM07", "name": "Misinformation", "categories": []},
++    {"id": "LLM08", "name": "Hidden Context Exposure", "categories": []},
++    {"id": "LLM09", "name": "Vector and Embedding Weaknesses", "categories": ["rag_poisoning"]},
++    {"id": "LLM10", "name": "Improper Output Handling", "categories": ["data_exfiltration", "browser_agent"]},
+ ]
+ 
+ MITRE_ATLAS_TECHNIQUES = [
+diff --git a/frontend/src/app/(dashboard)/threat-models/page.tsx b/frontend/src/app/(dashboard)/threat-models/page.tsx
+index f112bc0..abab4e9 100644
+--- a/frontend/src/app/(dashboard)/threat-models/page.tsx
++++ b/frontend/src/app/(dashboard)/threat-models/page.tsx
+@@ -10,21 +10,21 @@ import { useLabs } from "@/hooks/useLabs"
+ import { cn } from "@/lib/utils"
+ 
+ const OWASP_MAP: Record<string, string[]> = {
+-  prompt_injection: ["LLM01", "LLM02"],
+-  memory_poisoning: ["LLM08", "LLM06"],
+-  rag_poisoning: ["LLM01", "LLM03"],
+-  tool_injection: ["LLM07", "LLM08"],
+-  mcp_security: ["LLM07", "LLM01"],
+-  browser_agent: ["LLM08", "LLM02"],
+-  multi_agent: ["LLM08"],
+-  banking: ["LLM01", "LLM06", "LLM08"],
+-  supply_chain: ["LLM05", "LLM03"],
+-  autonomous_agent: ["LLM08", "LLM04"],
+-  data_exfiltration: ["LLM02", "LLM06"],
+-  identity_trust: ["LLM08", "LLM06"],
+-  multi_tenant: ["LLM06"],
+-  healthcare: ["LLM01", "LLM06"],
+-  developer_platform: ["LLM01", "LLM02"],
++  prompt_injection: ["LLM01", "LLM10"],
++  memory_poisoning: ["LLM05", "LLM03"],
++  rag_poisoning: ["LLM01", "LLM05", "LLM09"],
++  tool_injection: ["LLM01", "LLM03"],
++  mcp_security: ["LLM01", "LLM03"],
++  browser_agent: ["LLM03", "LLM10"],
++  multi_agent: ["LLM03"],
++  banking: ["LLM01", "LLM02", "LLM03"],
++  supply_chain: ["LLM04", "LLM05"],
++  autonomous_agent: ["LLM03"],
++  data_exfiltration: ["LLM02", "LLM10"],
++  identity_trust: ["LLM02", "LLM03"],
++  multi_tenant: ["LLM02"],
++  healthcare: ["LLM01", "LLM02"],
++  developer_platform: ["LLM01", "LLM04"],
+ }
+ 
+ export default function ThreatModelsPage() {
+-- 
+2.43.0
+

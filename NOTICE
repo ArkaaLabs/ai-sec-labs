@@ -1,0 +1,10 @@
+ai-sec-labs
+Copyright 2026 ARKAA Labs
+
+This product includes software developed by third parties. It orchestrates,
+but does not vendor, the upstream projects listed in ATTRIBUTION.md. Those
+projects are fetched at build time under their own licenses and remain the
+work of their respective authors.
+
+This file is provided to satisfy Section 4(d) of the Apache License, Version
+2.0, under which this repository is distributed.

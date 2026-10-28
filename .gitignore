@@ -1,0 +1,5 @@
+# Upstream checkouts are fetched, never committed.
+/upstream/
+.env
+__pycache__/
+*.pyc

@@ -1,0 +1,48 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Security Labs — Track 1</title>
+<style>
+  body { font: 15px/1.5 system-ui, sans-serif; max-width: 70rem; margin: 2rem auto; padding: 0 1rem; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0 2rem; }
+  th, td { border-bottom: 1px solid #ccc; padding: .4rem .6rem; text-align: left; vertical-align: top; }
+  th { font-weight: 600; }
+  code { background: #f0f0f0; padding: .1rem .3rem; }
+  .ready { color: #0a0; } .needs-build { color: #888; } .unverified { color: #c60; }
+  caption { text-align: left; font-weight: 600; padding: .6rem 0; }
+  .meta { color: #555; }
+</style>
+<h1>AI Security Labs — Track 1</h1>
+<p class="meta" id="meta"></p>
+<p><strong>Nothing runs until you ask for it.</strong> Start a lab with
+<code>make lab LAB=&lt;id&gt;</code>, then open the link in its row.</p>
+<div id="out">Loading labs.json…</div>
+<script>
+fetch('labs.json').then(r => r.json()).then(d => {
+  document.getElementById('meta').textContent =
+    d.track + ' · OWASP ' + d.owasp_edition;
+  const byModule = {};
+  for (const l of d.labs) (byModule[l.module] ||= []).push(l);
+  const esc = s => String(s ?? '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  let html = '';
+  for (const [mod, labs] of Object.entries(byModule)) {
+    html += '<table><caption>' + esc(mod) + '</caption><tr>' +
+      '<th>Lab</th><th>Title</th><th>Min</th><th>Status</th><th>Start</th><th>Open</th><th>Target</th></tr>';
+    for (const l of labs) {
+      html += '<tr>' +
+        '<td><code>' + esc(l.id) + '</code></td>' +
+        '<td>' + esc(l.title) + '</td>' +
+        '<td>' + esc(l.minutes) + '</td>' +
+        '<td class="' + esc(l.status) + '">' + esc(l.status) + '</td>' +
+        '<td><code>make lab LAB=' + esc(l.id) + '</code></td>' +
+        '<td>' + (l.url ? '<a href="' + esc(l.url) + '">open</a>' : '—') + '</td>' +
+        '<td class="meta">' + esc(l.source) + '</td>' +
+        '</tr>';
+    }
+    html += '</table>';
+  }
+  document.getElementById('out').innerHTML = html;
+}).catch(e => {
+  document.getElementById('out').textContent = 'Could not load labs.json: ' + e;
+});
+</script>

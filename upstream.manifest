@@ -1,0 +1,20 @@
+# ai-sec-labs upstream sources
+#
+# Format (tab-separated):  name <TAB> url <TAB> ref <TAB> license
+#
+# `ref` MUST be a full 40-char commit SHA for anything you depend on.
+# A branch name is accepted but fetch-upstream.sh will warn: upstream can
+# change under you and silently break a lab.
+#
+# Nothing here is vendored into this repo. Each source is cloned into
+# upstream/<name>/ at its pinned ref and left untouched; our changes live
+# in overlays/ and are applied on top. See overlays/README.md.
+
+llmvault	https://github.com/CyberSunil/LLMVault	c300ed563dd14cfce8426f33d7dde7bc554ad259	MIT
+dvap	https://github.com/sonuoffsec/DVAP	980305ef3b9561acc090970596f33015bc9e0be8	Apache-2.0
+dvmcp	https://github.com/harishsg993010/damn-vulnerable-MCP-server	main	MIT
+
+# --- Not enabled. License terms not yet verified by us; read LICENSE in each
+# --- repo before adding. Uncomment only after you have checked.
+# mcpgoat	https://github.com/SabyasachiDhal/MCPGoat	main	UNVERIFIED
+# appsecco-mcp	https://github.com/appsecco/vulnerable-mcp-servers-lab	main	UNVERIFIED

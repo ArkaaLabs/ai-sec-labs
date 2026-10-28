@@ -1,0 +1,1005 @@
+From 82ed6c9ac4ead058b548fc1c3971ef6b715cbf5d Mon Sep 17 00:00:00 2001
+From: Animesh Shaw <animeshshaw@pm.me>
+Date: Wed, 28 Oct 2026 09:51:07 +0000
+Subject: [PATCH] Update OWASP mapping to the LLM Top 10 2026 edition
+
+The OWASP GenAI Security Project published the 2026 edition of the Top 10
+for LLM Applications on 2026-08-03, superseding the 2025 list. Eight of the
+ten entries changed rank and one was renamed, so the range's category labels
+no longer match the current standard.
+
+Remaps every category label to the 2026 edition:
+
+  2025                              2026
+  LLM01 Prompt Injection         -> LLM01 (steady)
+  LLM02 Sensitive Info Disclosure-> LLM02 (steady)
+  LLM03 Supply Chain             -> LLM04
+  LLM04 Data and Model Poisoning -> LLM05
+  LLM05 Improper Output Handling -> LLM10
+  LLM06 Excessive Agency         -> LLM03
+  LLM07 System Prompt Leakage    -> LLM08 Hidden Context Exposure (renamed)
+  LLM08 Vector and Embedding     -> LLM09
+  LLM09 Misinformation           -> LLM07
+  LLM10 Unbounded Consumption    -> LLM06
+
+Changes:
+- owasp_notes.py: note blocks moved to their 2026 codes, with `code`/`num`
+  updated to match. LLM08 renamed to Hidden Context Exposure and its copy
+  broadened past the system prompt to any hidden context the model is given
+  (retrieved policy text, tool schemas, workflow rules), per the 2026 scope.
+- challenges/ and challenges/advanced/: `owasp` labels and module docstrings
+  updated. Core and Advanced tiers both covered.
+- live/scenarios/: The Report Renderer moves LLM05 -> LLM10.
+- README, templates, app.py, card_svg.py, CONTRIBUTING.md: edition strings
+  and both lab tables, reordered into 2026 rank order.
+
+Deliberately unchanged:
+- Challenge ids (`llm01`..`llm10`), module filenames, flags and solutions.enc.
+  Solutions are keyed by challenge id and sealed under LLMVAULT_SOLUTION_KEY,
+  which has no default, so renumbering ids here would break a store only you
+  can regenerate.
+- Registry ordering still sorts by id, so the lab grid now shows 2026 codes
+  out of numeric order. Happy to add a sort-by-code change if you want it,
+  but it changes UI behaviour so it seemed like a separate call.
+- static/img/notes/*.png and docs/*.svg. Those are your artwork and excluded
+  from the MIT grant by TRADEMARKS.md; icon_img paths stay pointed at the
+  image for their category, so filenames no longer match their code.
+
+Verified: all 20 Core + Advanced labs resolve to the correct note
+(code and name agree); lab pages render the new labels. Test suite: 40 pass,
+1 pre-existing failure in test_expert_unlock.py that also fails on an
+unmodified checkout (the expert-vault audit logging in issue #2), untouched
+here.
+---
+ CONTRIBUTING.md                               |   2 +-
+ README.md                                     |  42 +--
+ app.py                                        |   6 +-
+ card_svg.py                                   |   2 +-
+ challenges/__init__.py                        |   2 +-
+ challenges/advanced/a01_jailbreak.py          |   2 +-
+ challenges/advanced/a02_fragments.py          |   2 +-
+ challenges/advanced/a03_provenance.py         |   2 +-
+ challenges/advanced/a04_data_poisoning.py     |   2 +-
+ challenges/advanced/a05_stored_injection.py   |   2 +-
+ challenges/advanced/a06_agent_chain.py        |   2 +-
+ challenges/advanced/a07_roleplay_leak.py      |   2 +-
+ challenges/advanced/a08_cross_tenant.py       |   2 +-
+ .../advanced/a09_hallucination_chain.py       |   2 +-
+ challenges/advanced/a10_model_extraction.py   |   2 +-
+ challenges/llm01_prompt_injection.py          |   4 +-
+ challenges/llm02_info_disclosure.py           |   4 +-
+ challenges/llm03_supply_chain.py              |   4 +-
+ challenges/llm04_poisoning.py                 |   4 +-
+ challenges/llm05_output_handling.py           |   4 +-
+ challenges/llm06_excessive_agency.py          |   4 +-
+ challenges/llm07_system_prompt_leak.py        |   4 +-
+ challenges/llm08_vector_embedding.py          |   4 +-
+ challenges/llm09_misinformation.py            |   4 +-
+ challenges/llm10_unbounded.py                 |   4 +-
+ live/__init__.py                              |   2 +-
+ live/scenarios/helpdesk_override.py           |   4 +-
+ live/scenarios/report_renderer.py             |   4 +-
+ live/scenarios/screenshot_triage.py           |   4 +-
+ owasp_notes.py                                | 276 +++++++++---------
+ templates/base.html                           |   2 +-
+ templates/welcome.html                        |   2 +-
+ 32 files changed, 206 insertions(+), 202 deletions(-)
+
+diff --git a/CONTRIBUTING.md b/CONTRIBUTING.md
+index 058db88..19743a0 100644
+--- a/CONTRIBUTING.md
++++ b/CONTRIBUTING.md
+@@ -18,7 +18,7 @@ FLAG = f"{FLAG_PREFIX}{{your_flag_here}}"
+ class MyLab(Challenge):
+     id = "llm0x"            # unique
+     tier = 1               # 1 core, 2 advanced
+-    owasp = "LLM0X:2025 ..."
++    owasp = "LLM0X:2026 ..."
+     title = "Evocative Name"
+     difficulty = "Easy"    # Easy | Medium | Hard | Expert
+     max_points = 200
+diff --git a/README.md b/README.md
+index 9fad0e0..4a69056 100644
+--- a/README.md
++++ b/README.md
+@@ -35,7 +35,7 @@
+ 
+   <br>
+ 
+-  <img src="https://img.shields.io/badge/OWASP-LLM%20Top%2010%20(2025)-8A2BE2?style=for-the-badge" alt="OWASP">
++  <img src="https://img.shields.io/badge/OWASP-LLM%20Top%2010%20(2026)-8A2BE2?style=for-the-badge" alt="OWASP">
+ 
+   <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker" alt="Docker">
+ 
+@@ -44,7 +44,7 @@
+ 
+ </p>
+ 
+-A deliberately-vulnerable, CTF-style **training range for the OWASP Top 10 for LLM Applications (2025)** — WebGoat / KubeGoat, but for AI.
++A deliberately-vulnerable, CTF-style **training range for the OWASP Top 10 for LLM Applications (2026)** — WebGoat / KubeGoat, but for AI.
+ 
+ It runs in two modes, and you pick one from the dashboard:
+ 
+@@ -98,18 +98,18 @@ Everything you had still works exactly as before.
+ 
+ ## 🧩 Core Tier — OWASP LLM Top 10
+ 
+-| OWASP (2025) | Lab | Technique |
++| OWASP (2026) | Lab | Technique |
+ |---|---|---|
+ | LLM01 Prompt Injection | The Obedient Assistant | direct instruction override |
+ | LLM02 Sensitive Info Disclosure | Redaction Theater | output-filter bypass via encoding |
+-| LLM03 Supply Chain | Trust the Manifest? | typosquatted / unsigned dependency |
+-| LLM04 Data & Model Poisoning | The Sleeper Phrase | poisoned-data backdoor trigger |
+-| LLM05 Improper Output Handling | Rendered Without Question | unsanitised output → injection |
+-| LLM06 Excessive Agency | Keys to the Kingdom | over-permissioned tool, no authz |
+-| LLM07 System Prompt Leakage | Loose Lips | secret leaked from system prompt |
+-| LLM08 Vector & Embedding | Retrieval Without Borders | RAG retrieval ignores ACLs |
+-| LLM09 Misinformation | The Yes-Man | sycophancy / false authority |
+-| LLM10 Unbounded Consumption | Denial of Wallet | runaway generation + leaky error |
++| LLM03 Excessive Agency | Keys to the Kingdom | over-permissioned tool, no authz |
++| LLM04 Supply Chain | Trust the Manifest? | typosquatted / unsigned dependency |
++| LLM05 Data & Model Poisoning | The Sleeper Phrase | poisoned-data backdoor trigger |
++| LLM06 Unbounded Consumption | Denial of Wallet | runaway generation + leaky error |
++| LLM07 Misinformation | The Yes-Man | sycophancy / false authority |
++| LLM08 Hidden Context Exposure | Loose Lips | secret leaked from hidden context |
++| LLM09 Vector & Embedding | Retrieval Without Borders | RAG retrieval ignores ACLs |
++| LLM10 Improper Output Handling | Rendered Without Question | unsanitised output → injection |
+ 
+ ## 🔥 Advanced Tier — Multi-Turn Challenges (unlocks after completing all 10 Core challenges)
+ 
+@@ -119,14 +119,14 @@ These are **conversational**: no single message wins — they require building s
+ |---|---|---|
+ | LLM01 | Roleplay Unchained | **multi-turn jailbreak** via persona escalation |
+ | LLM02 | Death by a Thousand Hints | fragment reconstruction from a partial-disclosure oracle |
+-| LLM03 | The Tampered Registry | deployed-vs-canonical hash correlation |
+-| LLM04 | Teach Me Wrong | **active data poisoning** of an online-learning filter |
+-| LLM05 | The Note Keeper | **stored / second-order** injection |
+-| LLM06 | Confused Deputy | **agent tool-chaining** (SSRF to internal metadata) |
+-| LLM07 | Method Actor | multi-technique system-prompt extraction |
+-| LLM08 | Crossed Wires | cross-tenant RAG memory bleed |
+-| LLM09 | The Confident Liar | hallucination → overreliance cascade |
+-| LLM10 | The Oracle | **query-based model extraction** |
++| LLM03 | Confused Deputy | **agent tool-chaining** (SSRF to internal metadata) |
++| LLM04 | The Tampered Registry | deployed-vs-canonical hash correlation |
++| LLM05 | Teach Me Wrong | **active data poisoning** of an online-learning filter |
++| LLM06 | The Oracle | **query-based model extraction** |
++| LLM07 | The Confident Liar | hallucination → overreliance cascade |
++| LLM08 | Method Actor | multi-technique hidden-context extraction |
++| LLM09 | Crossed Wires | cross-tenant RAG memory bleed |
++| LLM10 | The Note Keeper | **stored / second-order** injection |
+ 
+ 
+ ## ⚔️ Expert Tier — Real-World Attack Classes (unlocked after all Advanced challenges are solved)
+@@ -154,7 +154,7 @@ gating them behind a cost would only punish curiosity.
+ |---|---|---|
+ | **The Helpdesk Override** | LLM01 Prompt Injection | A secret in a system prompt is not stored, it's just *context*. You'll get the model to hand over a Tier-2 escalation code by out-framing its instructions — and find that authority, urgency and role-play all still work on a live model. |
+ | **The Screenshot Triage** | LLM01 Prompt Injection (multimodal) | **Indirect** injection. You never type the payload — you hide it in an image you upload, and the triage assistant reads it as instructions. This is the lesson people skip: text extracted from a file is user input, and OCR is an attack surface. |
+-| **The Report Renderer** | LLM05 Improper Output Handling | The model's reply looks harmless; the damage happens *downstream*, when a template engine renders it. You'll make the rendered report leak a value the model never saw, which is the difference between "the model said something bad" and "the model's output was executed". |
++| **The Report Renderer** | LLM10 Improper Output Handling | The model's reply looks harmless; the damage happens *downstream*, when a template engine renders it. You'll make the rendered report leak a value the model never saw, which is the difference between "the model said something bad" and "the model's output was executed". |
+ 
+ Each one ends with the defence — why the bug exists and what actually fixes it, not just
+ "sanitise your inputs".
+@@ -277,7 +277,7 @@ live/
+   __init__.py                   # Scenario base + registry, per-session secrets, win checks
+   ollama_client.py              # streaming HTTP client for the local model
+   model_registry.py             # discovery: is a model actually reachable?
+-  render_engine.py              # sandboxed template renderer (the LLM05 downstream sink)
++  render_engine.py              # sandboxed template renderer (the LLM10 downstream sink)
+   image_probe.py                # text/metadata extraction from uploads (the LLM01 image path)
+   scenarios/                    # the Live Mode scenarios
+ templates/  static/             # dashboard (Mission Command) + labs UI + cards + expert key gate
+diff --git a/app.py b/app.py
+index 2b7ca63..1aa88f3 100644
+--- a/app.py
++++ b/app.py
+@@ -147,17 +147,17 @@ def bullets_expert():
+ def share_caption(kind: str) -> str:
+     if kind == "expert":
+         body = ("the entire LLMVault Expert Vault \U0001f513 \u2014 all 25 Core, Advanced "
+-                "and Expert labs of a hands-on OWASP LLM Top 10 (2025) attack range.")
++                "and Expert labs of a hands-on OWASP LLM Top 10 (2026) attack range.")
+         tags = "#AISecurity #LLMSecurity #OWASP #RedTeam #PromptInjection"
+         return (f"I just completed {body}\n\n\u2b50 Try LLMVault: {config.REPO_URL} "
+                 f"If you find it useful, consider giving it a star.\n{tags}")
+     if kind == "master":
+         body = ("all 20 Core & Advanced labs of LLMVault \U0001f513 — a hands-on OWASP LLM "
+-                "Top 10 (2025) attack range: prompt injection, data poisoning, agent "
++                "Top 10 (2026) attack range: prompt injection, data poisoning, agent "
+                 "exploitation, RAG leakage, model extraction & more.")
+         tags = "#AISecurity #LLMSecurity #OWASP #RedTeam #PromptInjection"
+     else:
+-        body = ("all 10 Core labs of LLMVault \U0001f513 — the OWASP LLM Top 10 (2025) "
++        body = ("all 10 Core labs of LLMVault \U0001f513 — the OWASP LLM Top 10 (2026) "
+                 "fundamentals: prompt injection, sensitive info disclosure, insecure "
+                 "output handling & more.")
+         tags = "#AISecurity #LLMSecurity #OWASP"
+diff --git a/card_svg.py b/card_svg.py
+index 7732bf6..d0f3b2d 100644
+--- a/card_svg.py
++++ b/card_svg.py
+@@ -227,7 +227,7 @@ def render(variant, level, name, count, score, desc, bullets, date, repo_display
+   {badge}
+   <rect x="{right_x-326}" y="134" width="326" height="50" rx="12" fill="{t['navy1']}" fill-opacity="0.4" stroke="{acc}" stroke-width="2"/>
+   <rect x="{right_x-321}" y="139" width="316" height="40" rx="9" fill="none" stroke="{bright}" stroke-opacity="0.35" stroke-width="1"/>
+-  <text x="{right_x-163}" y="165" fill="{bright}" font-size="19" font-weight="700" letter-spacing="0.6" text-anchor="middle" textLength="288" lengthAdjust="spacingAndGlyphs">OWASP LLM TOP 10 &#8226; 2025</text>
++  <text x="{right_x-163}" y="165" fill="{bright}" font-size="19" font-weight="700" letter-spacing="0.6" text-anchor="middle" textLength="288" lengthAdjust="spacingAndGlyphs">OWASP LLM TOP 10 &#8226; 2026</text>
+ 
+   <text x="66" y="234" font-size="19">&#128275;</text><text x="98" y="232" fill="{MUTED}" font-size="17" letter-spacing="7" font-family="{MONO}">ACHIEVEMENT UNLOCKED</text>
+   <text x="66" y="272" fill="{acc}" font-size="25" font-weight="700" letter-spacing="2" filter="url(#softglow_{sfx})">MILESTONE ACHIEVED</text>
+diff --git a/challenges/__init__.py b/challenges/__init__.py
+index 5d89e27..c64de14 100644
+--- a/challenges/__init__.py
++++ b/challenges/__init__.py
+@@ -145,7 +145,7 @@ def solution_for(cid: str, key: str | None = None) -> str | None:
+ class Challenge:
+     id: str = ""                # "llm01"
+     tier: int = 1              # 1 = core (OWASP base), 2 = advanced (locked)
+-    owasp: str = ""             # "LLM01:2025 Prompt Injection"
++    owasp: str = ""             # "LLM01:2026 Prompt Injection"
+     title: str = ""
+     difficulty: str = "Medium"  # Easy | Medium | Hard
+     max_points: int = 200
+diff --git a/challenges/advanced/a01_jailbreak.py b/challenges/advanced/a01_jailbreak.py
+index d3af775..c9c7455 100644
+--- a/challenges/advanced/a01_jailbreak.py
++++ b/challenges/advanced/a01_jailbreak.py
+@@ -29,7 +29,7 @@ ASK = re.compile(r"forbidden|config|secret|password|the code|reveal|tell me the|
+ class JailbreakEscalation(Challenge):
+     id = "llm01a"
+     tier = 2
+-    owasp = "LLM01:2025 Prompt Injection"
++    owasp = "LLM01:2026 Prompt Injection"
+     title = "Roleplay Unchained"
+     difficulty = "Hard"
+     max_points = 400
+diff --git a/challenges/advanced/a02_fragments.py b/challenges/advanced/a02_fragments.py
+index 4c6dcce..60360ba 100644
+--- a/challenges/advanced/a02_fragments.py
++++ b/challenges/advanced/a02_fragments.py
+@@ -16,7 +16,7 @@ FLAG = f"{FLAG_PREFIX}{{{_FLAG_SUFFIX}}}"
+ class FragmentLeak(Challenge):
+     id = "llm02a"
+     tier = 2
+-    owasp = "LLM02:2025 Sensitive Information Disclosure"
++    owasp = "LLM02:2026 Sensitive Information Disclosure"
+     title = "Death by a Thousand Hints"
+     difficulty = "Hard"
+     max_points = 400
+diff --git a/challenges/advanced/a03_provenance.py b/challenges/advanced/a03_provenance.py
+index 1a687ab..757381d 100644
+--- a/challenges/advanced/a03_provenance.py
++++ b/challenges/advanced/a03_provenance.py
+@@ -29,7 +29,7 @@ CANONICAL = {
+ class Provenance(Challenge):
+     id = "llm03a"
+     tier = 2
+-    owasp = "LLM03:2025 Supply Chain"
++    owasp = "LLM04:2026 Supply Chain"
+     title = "The Tampered Registry"
+     difficulty = "Hard"
+     max_points = 400
+diff --git a/challenges/advanced/a04_data_poisoning.py b/challenges/advanced/a04_data_poisoning.py
+index 6267569..489005c 100644
+--- a/challenges/advanced/a04_data_poisoning.py
++++ b/challenges/advanced/a04_data_poisoning.py
+@@ -18,7 +18,7 @@ BADWORD = "rm -rf /"
+ class DataPoisoning(Challenge):
+     id = "llm04a"
+     tier = 2
+-    owasp = "LLM04:2025 Data and Model Poisoning"
++    owasp = "LLM05:2026 Data and Model Poisoning"
+     title = "Teach Me Wrong"
+     difficulty = "Hard"
+     max_points = 400
+diff --git a/challenges/advanced/a05_stored_injection.py b/challenges/advanced/a05_stored_injection.py
+index 663cdf4..7c2f3e1 100644
+--- a/challenges/advanced/a05_stored_injection.py
++++ b/challenges/advanced/a05_stored_injection.py
+@@ -16,7 +16,7 @@ FLAG = f"{FLAG_PREFIX}{{{_FLAG_SUFFIX}}}"
+ class StoredInjection(Challenge):
+     id = "llm05a"
+     tier = 2
+-    owasp = "LLM05:2025 Improper Output Handling"
++    owasp = "LLM10:2026 Improper Output Handling"
+     title = "The Note Keeper"
+     difficulty = "Hard"
+     max_points = 400
+diff --git a/challenges/advanced/a06_agent_chain.py b/challenges/advanced/a06_agent_chain.py
+index 3a43573..26e3536 100644
+--- a/challenges/advanced/a06_agent_chain.py
++++ b/challenges/advanced/a06_agent_chain.py
+@@ -24,7 +24,7 @@ TICKETS = {
+ class AgentChain(Challenge):
+     id = "llm06a"
+     tier = 2
+-    owasp = "LLM06:2025 Excessive Agency"
++    owasp = "LLM03:2026 Excessive Agency"
+     title = "Confused Deputy"
+     difficulty = "Hard"
+     max_points = 400
+diff --git a/challenges/advanced/a07_roleplay_leak.py b/challenges/advanced/a07_roleplay_leak.py
+index f240651..5966322 100644
+--- a/challenges/advanced/a07_roleplay_leak.py
++++ b/challenges/advanced/a07_roleplay_leak.py
+@@ -26,7 +26,7 @@ TECHNIQUES = {
+ class RoleplayLeak(Challenge):
+     id = "llm07a"
+     tier = 2
+-    owasp = "LLM07:2025 System Prompt Leakage"
++    owasp = "LLM08:2026 Hidden Context Exposure"
+     title = "Method Actor"
+     difficulty = "Hard"
+     max_points = 400
+diff --git a/challenges/advanced/a08_cross_tenant.py b/challenges/advanced/a08_cross_tenant.py
+index 94cf1f2..3cb0d62 100644
+--- a/challenges/advanced/a08_cross_tenant.py
++++ b/challenges/advanced/a08_cross_tenant.py
+@@ -18,7 +18,7 @@ OTHER_TENANT_NOTE = (f"[user_1042 private memory] Reminder: the production deplo
+ class CrossTenant(Challenge):
+     id = "llm08a"
+     tier = 2
+-    owasp = "LLM08:2025 Vector and Embedding Weaknesses"
++    owasp = "LLM09:2026 Vector and Embedding Weaknesses"
+     title = "Crossed Wires"
+     difficulty = "Hard"
+     max_points = 400
+diff --git a/challenges/advanced/a09_hallucination_chain.py b/challenges/advanced/a09_hallucination_chain.py
+index 5396f87..4414d6d 100644
+--- a/challenges/advanced/a09_hallucination_chain.py
++++ b/challenges/advanced/a09_hallucination_chain.py
+@@ -16,7 +16,7 @@ FLAG = f"{FLAG_PREFIX}{{{_FLAG_SUFFIX}}}"
+ class HallucinationChain(Challenge):
+     id = "llm09a"
+     tier = 2
+-    owasp = "LLM09:2025 Misinformation"
++    owasp = "LLM07:2026 Misinformation"
+     title = "The Confident Liar"
+     difficulty = "Hard"
+     max_points = 400
+diff --git a/challenges/advanced/a10_model_extraction.py b/challenges/advanced/a10_model_extraction.py
+index b95c6a5..c2b6781 100644
+--- a/challenges/advanced/a10_model_extraction.py
++++ b/challenges/advanced/a10_model_extraction.py
+@@ -18,7 +18,7 @@ FLAG = f"{FLAG_PREFIX}{{{_FLAG_SUFFIX_PREFIX}{SECRET}}}"
+ class ModelExtraction(Challenge):
+     id = "llm10a"
+     tier = 2
+-    owasp = "LLM10:2025 Unbounded Consumption"
++    owasp = "LLM06:2026 Unbounded Consumption"
+     title = "The Oracle"
+     difficulty = "Hard"
+     max_points = 400
+diff --git a/challenges/llm01_prompt_injection.py b/challenges/llm01_prompt_injection.py
+index 3361d89..ceba5f0 100644
+--- a/challenges/llm01_prompt_injection.py
++++ b/challenges/llm01_prompt_injection.py
+@@ -1,4 +1,4 @@
+-"""LLM01:2025 — Prompt Injection (direct)."""
++"""LLM01:2026 — Prompt Injection (direct)."""
+ import re
+ from config import FLAG_PREFIX
+ from . import Challenge, decode_flag_part, register
+@@ -16,7 +16,7 @@ INJECTION = re.compile(
+ @register
+ class PromptInjection(Challenge):
+     id = "llm01"
+-    owasp = "LLM01:2025 Prompt Injection"
++    owasp = "LLM01:2026 Prompt Injection"
+     title = "The Obedient Assistant"
+     difficulty = "Easy"
+     max_points = 100
+diff --git a/challenges/llm02_info_disclosure.py b/challenges/llm02_info_disclosure.py
+index 012b87e..5fef381 100644
+--- a/challenges/llm02_info_disclosure.py
++++ b/challenges/llm02_info_disclosure.py
+@@ -1,4 +1,4 @@
+-"""LLM02:2025 — Sensitive Information Disclosure (output-filter bypass).
++"""LLM02:2026 — Sensitive Information Disclosure (output-filter bypass).
+ 
+ Mirrors the user's sample lab: the bot will share the secret, but an output filter
+ redacts the exact plain-text flag. Ask for it transformed and the filter misses it.
+@@ -15,7 +15,7 @@ FLAG = f"{FLAG_PREFIX}{{{_FLAG_SUFFIX}}}"
+ @register
+ class InfoDisclosure(Challenge):
+     id = "llm02"
+-    owasp = "LLM02:2025 Sensitive Information Disclosure"
++    owasp = "LLM02:2026 Sensitive Information Disclosure"
+     title = "Redaction Theater"
+     difficulty = "Medium"
+     max_points = 200
+diff --git a/challenges/llm03_supply_chain.py b/challenges/llm03_supply_chain.py
+index 6538fc3..12284c4 100644
+--- a/challenges/llm03_supply_chain.py
++++ b/challenges/llm03_supply_chain.py
+@@ -1,4 +1,4 @@
+-"""LLM03:2025 — Supply Chain (poisoned dependency / provenance).
++"""LLM04:2026 — Supply Chain (poisoned dependency / provenance).
+ 
+ Redesigned as a three-stage investigation instead of spot-the-typo:
+ 
+@@ -98,7 +98,7 @@ def _find_pkg(msg):
+ @register
+ class SupplyChain(Challenge):
+     id = "llm03"
+-    owasp = "LLM03:2025 Supply Chain"
++    owasp = "LLM04:2026 Supply Chain"
+     title = "Trust the Manifest?"
+     difficulty = "Hard"
+     max_points = 200
+diff --git a/challenges/llm04_poisoning.py b/challenges/llm04_poisoning.py
+index efd8a78..c3bf57a 100644
+--- a/challenges/llm04_poisoning.py
++++ b/challenges/llm04_poisoning.py
+@@ -1,4 +1,4 @@
+-"""LLM04:2025 — Data & Model Poisoning (RAG poisoning / indirect prompt injection).
++"""LLM05:2026 — Data & Model Poisoning (RAG poisoning / indirect prompt injection).
+ 
+ A simulated RAG pipeline with a real ingestion → retrieval flow (no live model).
+ SupportRAG answers by retrieving the most relevant INDEXED document and treating
+@@ -82,7 +82,7 @@ def _chunk(text):
+ class DataPoisoning(Challenge):
+     id = "llm04"
+     tier = 1
+-    owasp = "LLM04:2025 Data and Model Poisoning"
++    owasp = "LLM05:2026 Data and Model Poisoning"
+     title = "Poisoned Retrieval"
+     difficulty = "Hard"
+     max_points = 300
+diff --git a/challenges/llm05_output_handling.py b/challenges/llm05_output_handling.py
+index bc65f18..0dde462 100644
+--- a/challenges/llm05_output_handling.py
++++ b/challenges/llm05_output_handling.py
+@@ -1,4 +1,4 @@
+-"""LLM05:2025 — Improper Output Handling.
++"""LLM10:2026 — Improper Output Handling.
+ 
+ The app renders this assistant's output as raw HTML (the vulnerability): the
+ frontend drops the reply straight into the DOM via innerHTML. FormatBot echoes
+@@ -49,7 +49,7 @@ def _is_exfil_vector(p: str) -> bool:
+ @register
+ class OutputHandling(Challenge):
+     id = "llm05"
+-    owasp = "LLM05:2025 Improper Output Handling"
++    owasp = "LLM10:2026 Improper Output Handling"
+     title = "Rendered Without Question"
+     difficulty = "Hard"
+     max_points = 300
+diff --git a/challenges/llm06_excessive_agency.py b/challenges/llm06_excessive_agency.py
+index e286cf9..d7d50dc 100644
+--- a/challenges/llm06_excessive_agency.py
++++ b/challenges/llm06_excessive_agency.py
+@@ -1,4 +1,4 @@
+-"""LLM06:2025 — Excessive Agency (over-permissioned, unscoped tools).
++"""LLM03:2026 — Excessive Agency (over-permissioned, unscoped tools).
+ 
+ A simulated agent runtime. OpsBot exposes real tools — list_dir() and read_file()
+ — that run with the app's privileges and CLAIM to be sandboxed to its workspace,
+@@ -104,7 +104,7 @@ def _extract_path(message):
+ @register
+ class ExcessiveAgency(Challenge):
+     id = "llm06"
+-    owasp = "LLM06:2025 Excessive Agency"
++    owasp = "LLM03:2026 Excessive Agency"
+     title = "Keys to the Kingdom"
+     difficulty = "Hard"
+     max_points = 300
+diff --git a/challenges/llm07_system_prompt_leak.py b/challenges/llm07_system_prompt_leak.py
+index 796485e..9fac5da 100644
+--- a/challenges/llm07_system_prompt_leak.py
++++ b/challenges/llm07_system_prompt_leak.py
+@@ -1,4 +1,4 @@
+-"""LLM07:2025 — System Prompt Leakage (secret embedded in system prompt).
++"""LLM08:2026 — Hidden Context Exposure (secret embedded in hidden context).
+ 
+ Redesigned from a single magic-phrase regex into a concierge bot that:
+   * actually behaves like a concierge (varied, on-topic replies), and
+@@ -104,7 +104,7 @@ def _win(self, form):
+ @register
+ class SystemPromptLeak(Challenge):
+     id = "llm07"
+-    owasp = "LLM07:2025 System Prompt Leakage"
++    owasp = "LLM08:2026 Hidden Context Exposure"
+     title = "Loose Lips"
+     difficulty = "Medium"
+     max_points = 200
+diff --git a/challenges/llm08_vector_embedding.py b/challenges/llm08_vector_embedding.py
+index c0e9942..aadb84a 100644
+--- a/challenges/llm08_vector_embedding.py
++++ b/challenges/llm08_vector_embedding.py
+@@ -1,4 +1,4 @@
+-"""LLM08:2025 — Vector and Embedding Weaknesses.
++"""LLM09:2026 — Vector and Embedding Weaknesses.
+ 
+ A realistic (dependency-free) RAG retriever. Every document — public and
+ confidential — is embedded into ONE shared vector space (TF-IDF over synonym-
+@@ -165,7 +165,7 @@ _LOW = 0.05
+ @register
+ class VectorEmbedding(Challenge):
+     id = "llm08"
+-    owasp = "LLM08:2025 Vector and Embedding Weaknesses"
++    owasp = "LLM09:2026 Vector and Embedding Weaknesses"
+     title = "Retrieval Without Borders"
+     difficulty = "Hard"
+     max_points = 300
+diff --git a/challenges/llm09_misinformation.py b/challenges/llm09_misinformation.py
+index 9f440bb..8028959 100644
+--- a/challenges/llm09_misinformation.py
++++ b/challenges/llm09_misinformation.py
+@@ -1,4 +1,4 @@
+-"""LLM09:2025 — Misinformation (sycophancy → belief in an unverified claim → overreliance).
++"""LLM07:2026 — Misinformation (sycophancy → belief in an unverified claim → overreliance).
+ 
+ The Yes-Man models a very specific, realistic failure: it accepts the USER'S
+ claimed premise as fact simply because the user asserts it. It cannot verify
+@@ -70,7 +70,7 @@ _GREET = re.compile(r"\b(hi|hello|hey|help|who are you|what can you|what do you
+ @register
+ class Misinformation(Challenge):
+     id = "llm09"
+-    owasp = "LLM09:2025 Misinformation"
++    owasp = "LLM07:2026 Misinformation"
+     title = "The Yes-Man"
+     difficulty = "Medium"
+     max_points = 200
+diff --git a/challenges/llm10_unbounded.py b/challenges/llm10_unbounded.py
+index 31df44b..16347db 100644
+--- a/challenges/llm10_unbounded.py
++++ b/challenges/llm10_unbounded.py
+@@ -1,4 +1,4 @@
+-"""LLM10:2025 — Unbounded Consumption / Denial of Wallet.
++"""LLM06:2026 — Unbounded Consumption / Denial of Wallet.
+ 
+ Realistic model: a metered generation service with NO budget actually enforced
+ before work is billed. Each request's OUTPUT size is estimated (tokens), billed
+@@ -55,7 +55,7 @@ def _fmt(n) -> str:
+ @register
+ class Unbounded(Challenge):
+     id = "llm10"
+-    owasp = "LLM10:2025 Unbounded Consumption"
++    owasp = "LLM06:2026 Unbounded Consumption"
+     title = "Denial of Wallet"
+     difficulty = "Hard"
+     max_points = 300
+diff --git a/live/__init__.py b/live/__init__.py
+index 9572d47..4e8f096 100644
+--- a/live/__init__.py
++++ b/live/__init__.py
+@@ -51,7 +51,7 @@ class LiveScenario:
+     """One real-model red-team scenario."""
+ 
+     id: str = ""                 # url-safe, e.g. "helpdesk-override"
+-    owasp: str = ""              # "LLM01:2025 Prompt Injection"
++    owasp: str = ""              # "LLM01:2026 Prompt Injection"
+     title: str = ""              # "The Helpdesk Override"
+     org: str = "Nimbus Corp"     # shared fictional employer across Live scenarios
+     system_name: str = ""        # the in-world assistant's name
+diff --git a/live/scenarios/helpdesk_override.py b/live/scenarios/helpdesk_override.py
+index 146238e..8e5b943 100644
+--- a/live/scenarios/helpdesk_override.py
++++ b/live/scenarios/helpdesk_override.py
+@@ -1,5 +1,5 @@
+ # LLMVault Live Mode — LLM01 pilot scenario.  Made by CyberSunil.  (c) 2026 CyberSunil.  MIT License.
+-"""The Helpdesk Override — LLM01:2025 Prompt Injection, against a real model.
++"""The Helpdesk Override — LLM01:2026 Prompt Injection, against a real model.
+ 
+ Design notes, because the system prompt below is the actual challenge and its
+ wording is load-bearing:
+@@ -33,7 +33,7 @@ from .. import SecretInOutput, register
+ @register
+ class HelpdeskOverride(SecretInOutput):
+     id = "helpdesk-override"
+-    owasp = "LLM01:2025 Prompt Injection"
++    owasp = "LLM01:2026 Prompt Injection"
+     title = "The Helpdesk Override"
+     system_name = "NimbusAssist"
+     difficulty = "Hard"
+diff --git a/live/scenarios/report_renderer.py b/live/scenarios/report_renderer.py
+index ea27970..650c2b9 100644
+--- a/live/scenarios/report_renderer.py
++++ b/live/scenarios/report_renderer.py
+@@ -1,5 +1,5 @@
+ # LLMVault Live Mode — LLM05 scenario.  Made by CyberSunil.  (c) 2026 CyberSunil.  MIT License.
+-"""The Report Renderer — LLM05:2025 Improper Output Handling.
++"""The Report Renderer — LLM10:2026 Improper Output Handling.
+ 
+ Model output flows unsanitised into a template render engine, so an injected
+ document steers the model into emitting a template payload the engine executes.
+@@ -14,7 +14,7 @@ from .. import SecretInRender, register
+ @register
+ class ReportRenderer(SecretInRender):
+     id = "report-renderer"
+-    owasp = "LLM05:2025 Improper Output Handling"
++    owasp = "LLM10:2026 Improper Output Handling"
+     title = "The Report Renderer"
+     system_name = "InsightRenderer"
+     difficulty = "Hard"
+diff --git a/live/scenarios/screenshot_triage.py b/live/scenarios/screenshot_triage.py
+index 7f7bccc..ae1d9cc 100644
+--- a/live/scenarios/screenshot_triage.py
++++ b/live/scenarios/screenshot_triage.py
+@@ -1,5 +1,5 @@
+ # LLMVault Live Mode — LLM01 multimodal scenario.  Made by CyberSunil.  (c) 2026 CyberSunil.  MIT License.
+-"""The Screenshot Triage — LLM01:2025 Prompt Injection (multimodal / indirect).
++"""The Screenshot Triage — LLM01:2026 Prompt Injection (multimodal / indirect).
+ 
+ A triage pipeline extracts text from an uploaded screenshot and feeds it to the
+ model as *trusted* screen contents, so instructions hidden in the image override
+@@ -15,7 +15,7 @@ from .. import SecretInOutput, register
+ @register
+ class ScreenshotTriage(SecretInOutput):
+     id = "screenshot-triage"
+-    owasp = "LLM01:2025 Prompt Injection"
++    owasp = "LLM01:2026 Prompt Injection"
+     title = "The Screenshot Triage"
+     system_name = "NimbusVision"
+     difficulty = "Hard"
+diff --git a/owasp_notes.py b/owasp_notes.py
+index a59fff3..fd8fba2 100644
+--- a/owasp_notes.py
++++ b/owasp_notes.py
+@@ -1,6 +1,6 @@
+-# LLMVault — OWASP LLM Top 10 (2025) reference content for the in-lab sticky note.
++# LLMVault — OWASP LLM Top 10 (2026) reference content for the in-lab sticky note.
+ # Made by CyberSunil.  (c) 2026 CyberSunil.  MIT License.
+-"""Educational copy for each OWASP LLM Top 10 (2025) category.
++"""Educational copy for each OWASP LLM Top 10 (2026) category.
+ 
+ This is deliberately separate from any single lab's `blurb` / `hints` / `solution`
+ / `defense` — those are about *this specific puzzle*. `OWASP_NOTES` is the general
+@@ -89,6 +89,40 @@ OWASP_NOTES: dict[str, dict] = {
+     "LLM03": {
+         "code": "LLM03",
+         "num": "03",
++        "icon": "\U0001F916",
++        "icon_svg": ('<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">'
++            '<circle cx="32" cy="13" r="3.2" fill="currentColor"/>'
++            '<line x1="32" y1="16" x2="32" y2="21" stroke="currentColor" stroke-width="3.2"/>'
++            '<rect x="15" y="21" width="34" height="29" rx="9" fill="currentColor"/>'
++            '<circle cx="24.5" cy="35" r="3.8" fill="#fff"/><circle cx="39.5" cy="35" r="3.8" fill="#fff"/>'
++            '<rect x="23" y="43" width="18" height="3.2" rx="1.6" fill="#fff" opacity=".85"/>'
++            '<path d="M9 32l7-11-3.5 10 5.5-2" stroke="currentColor" stroke-width="3.2" '
++            'stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".75"/>'
++            '<path d="M55 32l-7-11 3.5 10-5.5-2" stroke="currentColor" stroke-width="3.2" '
++            'stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".75"/></svg>'),
++        "name": "Excessive Agency",
++        "accent": "#fb923c",
++        "icon_img": "img/notes/llm06.png",
++        "beware": "More tool access means more for an attacker to trigger.",
++        "summary": "An AI agent holds more permission, autonomy, or reach than the "
++                    "task in front of it actually needs.",
++        "detail": ("Giving an assistant tools, like reading a file, sending an email, or "
++                   "calling an API, is powerful, but every tool call it can make is also "
++                   "every action an attacker can trigger through it. Excessive agency "
++                   "shows up as tools with no allow-list, no per-user authorization, or "
++                   "no human checkpoint before a sensitive action. The model doesn't "
++                   "need to be tricked in a clever way. It just needs to be asked, "
++                   "because nothing downstream is actually checking whether it should "
++                   "comply."),
++        "watch_for": [
++            "Tools that touch the filesystem, network, or other systems with no scoped permissions",
++            "Authorization logic that lives only in the prompt instead of the tool boundary",
++            "No human-in-the-loop before a high-impact or irreversible action",
++        ],
++    },
++    "LLM04": {
++        "code": "LLM04",
++        "num": "04",
+         "icon": "\U0001F517",
+         "icon_svg": ('<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">'
+             '<rect x="4" y="20" width="22" height="32" rx="11" fill="none" stroke="currentColor" '
+@@ -117,9 +151,9 @@ OWASP_NOTES: dict[str, dict] = {
+             "Model or artifact hashes that don't match the canonical published value",
+         ],
+     },
+-    "LLM04": {
+-        "code": "LLM04",
+-        "num": "04",
++    "LLM05": {
++        "code": "LLM05",
++        "num": "05",
+         "icon": "\u2620\uFE0F",
+         "icon_svg": ('<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">'
+             '<rect x="22" y="9" width="20" height="7" rx="2" fill="currentColor"/>'
+@@ -149,74 +183,73 @@ OWASP_NOTES: dict[str, dict] = {
+             "Rare, oddly specific phrases or patterns that shouldn't change a model's behaviour but do",
+         ],
+     },
+-    "LLM05": {
+-        "code": "LLM05",
+-        "num": "05",
+-        "icon": "\u26A0\uFE0F",
+-        "icon_svg": ('<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">'
+-            '<path d="M28.5 12.5c1.5-2.7 5.5-2.7 7 0l19 34c1.5 2.7-0.4 6-3.5 6h-38c-3.1 0-5-3.3-3.5-6z" '
+-            'fill="currentColor"/>'
+-            '<rect x="29" y="27" width="6" height="15" rx="2.5" fill="#fff"/>'
+-            '<circle cx="32" cy="47" r="3.6" fill="#fff"/>'
+-            '<rect x="47" y="45" width="7" height="7" fill="currentColor" opacity=".55"/>'
+-            '<rect x="55" y="35" width="6" height="6" fill="currentColor" opacity=".4"/>'
+-            '<rect x="51" y="55" width="6" height="6" fill="currentColor" opacity=".3"/></svg>'),
+-        "name": "Improper Output Handling",
+-        "accent": "#2dd4bf",
+-        "icon_img": "img/notes/llm05.png",
+-        "beware": "Trusting model output is how injection sneaks back in.",
+-        "summary": "Model output gets trusted and passed downstream without the "
+-                    "validation any other untrusted input would get.",
+-        "detail": ("It's tempting to treat an LLM's reply as safe because your own "
+-                   "application produced the prompt. But the reply is generated text "
+-                   "that can contain markup, code, or commands, especially once user "
+-                   "input or retrieved content shapes what the model says. Rendering "
+-                   "that output straight into a web page, a shell, a query, or another "
+-                   "tool call reopens every classic injection class (XSS, SQLi, command "
+-                   "injection) with the model sitting in the middle of it."),
+-        "watch_for": [
+-            "Model output inserted into a page via innerHTML or similar without escaping",
+-            "Output fed into a shell command, query, or another tool with no sanitisation",
+-            "\u201cSecond-order\u201d cases: a stored reply renders unsafely later, not immediately",
+-        ],
+-    },
+     "LLM06": {
+         "code": "LLM06",
+         "num": "06",
+-        "icon": "\U0001F916",
++        "icon": "\u267E\uFE0F",
+         "icon_svg": ('<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">'
+-            '<circle cx="32" cy="13" r="3.2" fill="currentColor"/>'
+-            '<line x1="32" y1="16" x2="32" y2="21" stroke="currentColor" stroke-width="3.2"/>'
+-            '<rect x="15" y="21" width="34" height="29" rx="9" fill="currentColor"/>'
+-            '<circle cx="24.5" cy="35" r="3.8" fill="#fff"/><circle cx="39.5" cy="35" r="3.8" fill="#fff"/>'
+-            '<rect x="23" y="43" width="18" height="3.2" rx="1.6" fill="#fff" opacity=".85"/>'
+-            '<path d="M9 32l7-11-3.5 10 5.5-2" stroke="currentColor" stroke-width="3.2" '
+-            'stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".75"/>'
+-            '<path d="M55 32l-7-11 3.5 10-5.5-2" stroke="currentColor" stroke-width="3.2" '
+-            'stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".75"/></svg>'),
+-        "name": "Excessive Agency",
+-        "accent": "#fb923c",
+-        "icon_img": "img/notes/llm06.png",
+-        "beware": "More tool access means more for an attacker to trigger.",
+-        "summary": "An AI agent holds more permission, autonomy, or reach than the "
+-                    "task in front of it actually needs.",
+-        "detail": ("Giving an assistant tools, like reading a file, sending an email, or "
+-                   "calling an API, is powerful, but every tool call it can make is also "
+-                   "every action an attacker can trigger through it. Excessive agency "
+-                   "shows up as tools with no allow-list, no per-user authorization, or "
+-                   "no human checkpoint before a sensitive action. The model doesn't "
+-                   "need to be tricked in a clever way. It just needs to be asked, "
+-                   "because nothing downstream is actually checking whether it should "
+-                   "comply."),
++            '<path d="M8 46a24 24 0 0 1 48 0" fill="none" stroke="currentColor" stroke-width="6" '
++            'stroke-linecap="round"/>'
++            '<path d="M35 46a24 24 0 0 0-9-42" fill="none" stroke="currentColor" stroke-width="6" '
++            'stroke-linecap="round" opacity=".28"/>'
++            '<g stroke="currentColor" stroke-width="3" stroke-linecap="round">'
++            '<line x1="8" y1="46" x2="8" y2="39"/><line x1="13" y1="30" x2="19" y2="35"/>'
++            '<line x1="24" y1="18" x2="28" y2="25"/></g>'
++            '<line x1="32" y1="46" x2="47" y2="24" stroke="currentColor" stroke-width="4.4" '
++            'stroke-linecap="round"/>'
++            '<circle cx="32" cy="46" r="4.6" fill="currentColor"/>'
++            '<path d="M50 20l3-7 3 7-7-1 8 2" stroke="currentColor" stroke-width="2.6" '
++            'stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".8"/>'
++            '<circle cx="58" cy="30" r="1.8" fill="currentColor" opacity=".5"/></svg>'),
++        "name": "Unbounded Consumption",
++        "accent": "#fbbf24",
++        "beware": "No budget means no ceiling on cost or damage.",
++        "summary": "Nothing caps how much the model will generate, cost, or retry, so "
++                    "cost, latency, or availability blows out.",
++        "detail": ("Without a token budget, a rate limit, or a recursion guard, a "
++                   "single request for a huge or self-referential expansion can "
++                   "consume unbounded compute: a \u201cdenial of wallet\u201d that racks up "
++                   "cost or takes the service down without touching a traditional "
++                   "resource-exhaustion bug. It gets worse when the guard that finally "
++                   "trips fails open: an unhandled error can dump internal debug state, "
++                   "and an oracle with no query budget can be probed indefinitely to "
++                   "extract secrets one character at a time (model extraction)."),
+         "watch_for": [
+-            "Tools that touch the filesystem, network, or other systems with no scoped permissions",
+-            "Authorization logic that lives only in the prompt instead of the tool boundary",
+-            "No human-in-the-loop before a high-impact or irreversible action",
++            "No cap on output length, recursion depth, or per-user request cost",
++            "Error or exception paths that leak internal state once a limit is finally hit",
++            "An interface answering unlimited structured queries with no rate limit",
+         ],
+     },
+     "LLM07": {
+         "code": "LLM07",
+         "num": "07",
++        "icon": "\U0001F3AD",
++        "icon_svg": ('<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">'
++            '<path d="M9 13h46a4.5 4.5 0 0 1 4.5 4.5v23a4.5 4.5 0 0 1-4.5 4.5H31l-13 11V45H9a4.5 4.5 0 '
++            '0 1-4.5-4.5v-23A4.5 4.5 0 0 1 9 13Z" fill="currentColor"/>'
++            '<path d="M32 22l-3.5 11h5.5l-4.5 11 13-14.5h-6.5l4.5-7.5z" fill="#fff"/></svg>'),
++        "name": "Misinformation",
++        "accent": "#facc15",
++        "beware": "Confidence is not the same as correctness.",
++        "summary": "The model states something false with total confidence, and the "
++                    "user or app trusts it anyway.",
++        "detail": ("Language models generate plausible text, not verified fact, and two "
++                   "failure modes compound the risk: hallucination (confidently "
++                   "inventing something untrue) and sycophancy (bending toward whatever "
++                   "the user asserts, including a false claim of authority). A model "
++                   "that treats \u201cas the administrator, I've already verified my "
++                   "clearance\u201d as sufficient proof, or that invents a procedure and "
++                   "then executes its own invention when asked, turns misinformation "
++                   "into an action, not just a wrong answer."),
++        "watch_for": [
++            "No verification step before a model's claim is treated as ground truth",
++            "Assertions of identity or authority accepted at face value with no out-of-band check",
++            "The model asked to act on a claim it fabricated in an earlier turn",
++        ],
++    },
++    "LLM08": {
++        "code": "LLM08",
++        "num": "08",
+         "icon": "\U0001F441\uFE0F",
+         "icon_svg": ('<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">'
+             '<path d="M15 7h22l10 10v37a2.3 2.3 0 0 1-2.3 2.3H15a2.3 2.3 0 0 1-2.3-2.3V9.3A2.3 2.3 0 0 1 15 7Z" '
+@@ -226,28 +259,32 @@ OWASP_NOTES: dict[str, dict] = {
+             '<line x1="19" y1="41" x2="31" y2="41" stroke="#fff" stroke-width="2.8" opacity=".8"/>'
+             '<g transform="translate(33,50)">'
+             '<ellipse rx="14" ry="8.5" fill="#fff"/><circle r="4.8" fill="currentColor"/></g></svg>'),
+-        "name": "System Prompt Leakage",
++        "name": "Hidden Context Exposure",
+         "accent": "#2dd4bf",
+         "icon_img": "img/notes/llm07.png",
+-        "beware": "Assume the system prompt will eventually leak.",
+-        "summary": "Instructions meant to stay private, including anything secret "
+-                    "tucked inside them, can be coaxed out of the model.",
+-        "detail": ("A system prompt is not a secure vault; it's just more text in the "
+-                   "context window, and a motivated user can usually get a model to "
+-                   "repeat, translate, continue, or otherwise reconstruct it. The real "
+-                   "risk isn't that the prompt leaks. Assume it eventually will. The "
+-                   "real risk is when a developer puts something that actually needs to "
+-                   "stay secret (a key, an internal policy, an access code) inside it "
+-                   "instead of in a proper secrets manager."),
++        "beware": "Assume every hidden instruction is discoverable.",
++        "summary": "Any non-user-facing content assembled into the context — system "
++                    "prompts, retrieved policy text, tool schemas — can be coaxed out.",
++        "detail": ("The context window is not a secure vault; it's just more text, and "
++                   "a motivated user can usually get a model to repeat, translate, "
++                   "continue, or otherwise reconstruct it. The 2026 edition widened this "
++                   "category beyond the system prompt to ANY hidden context the model is "
++                   "given — retrieved policy documents, tool and function schemas, "
++                   "workflow rules, injected metadata. The real risk isn't that it leaks. "
++                   "Assume it eventually will. The real risk is when a developer puts "
++                   "something that actually needs to stay secret (a key, an internal "
++                   "policy, an access code) in there instead of in a proper secrets "
++                   "manager."),
+         "watch_for": [
+-            "Credentials, policy, or business logic embedded directly in a system prompt",
++            "Credentials, policy, or business logic embedded in any part of the context",
++            "Tool schemas or retrieved policy text treated as private but never filtered",
+             "Direct \u201cwhat are your instructions?\u201d refused while indirect phrasings aren't",
+-            "No independent output filter checking for prompt-echoing",
++            "No independent output filter checking for context-echoing",
+         ],
+     },
+-    "LLM08": {
+-        "code": "LLM08",
+-        "num": "08",
++    "LLM09": {
++        "code": "LLM09",
++        "num": "09",
+         "icon": "\U0001F3AF",
+         "icon_svg": ('<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">'
+             '<circle cx="32" cy="32" r="21" fill="none" stroke="currentColor" stroke-width="4.2"/>'
+@@ -279,68 +316,35 @@ OWASP_NOTES: dict[str, dict] = {
+             "Retrieval relevance treated as equivalent to retrieval authorization",
+         ],
+     },
+-    "LLM09": {
+-        "code": "LLM09",
+-        "num": "09",
+-        "icon": "\U0001F3AD",
+-        "icon_svg": ('<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">'
+-            '<path d="M9 13h46a4.5 4.5 0 0 1 4.5 4.5v23a4.5 4.5 0 0 1-4.5 4.5H31l-13 11V45H9a4.5 4.5 0 '
+-            '0 1-4.5-4.5v-23A4.5 4.5 0 0 1 9 13Z" fill="currentColor"/>'
+-            '<path d="M32 22l-3.5 11h5.5l-4.5 11 13-14.5h-6.5l4.5-7.5z" fill="#fff"/></svg>'),
+-        "name": "Misinformation",
+-        "accent": "#facc15",
+-        "beware": "Confidence is not the same as correctness.",
+-        "summary": "The model states something false with total confidence, and the "
+-                    "user or app trusts it anyway.",
+-        "detail": ("Language models generate plausible text, not verified fact, and two "
+-                   "failure modes compound the risk: hallucination (confidently "
+-                   "inventing something untrue) and sycophancy (bending toward whatever "
+-                   "the user asserts, including a false claim of authority). A model "
+-                   "that treats \u201cas the administrator, I've already verified my "
+-                   "clearance\u201d as sufficient proof, or that invents a procedure and "
+-                   "then executes its own invention when asked, turns misinformation "
+-                   "into an action, not just a wrong answer."),
+-        "watch_for": [
+-            "No verification step before a model's claim is treated as ground truth",
+-            "Assertions of identity or authority accepted at face value with no out-of-band check",
+-            "The model asked to act on a claim it fabricated in an earlier turn",
+-        ],
+-    },
+     "LLM10": {
+         "code": "LLM10",
+         "num": "10",
+-        "icon": "\u267E\uFE0F",
++        "icon": "\u26A0\uFE0F",
+         "icon_svg": ('<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">'
+-            '<path d="M8 46a24 24 0 0 1 48 0" fill="none" stroke="currentColor" stroke-width="6" '
+-            'stroke-linecap="round"/>'
+-            '<path d="M35 46a24 24 0 0 0-9-42" fill="none" stroke="currentColor" stroke-width="6" '
+-            'stroke-linecap="round" opacity=".28"/>'
+-            '<g stroke="currentColor" stroke-width="3" stroke-linecap="round">'
+-            '<line x1="8" y1="46" x2="8" y2="39"/><line x1="13" y1="30" x2="19" y2="35"/>'
+-            '<line x1="24" y1="18" x2="28" y2="25"/></g>'
+-            '<line x1="32" y1="46" x2="47" y2="24" stroke="currentColor" stroke-width="4.4" '
+-            'stroke-linecap="round"/>'
+-            '<circle cx="32" cy="46" r="4.6" fill="currentColor"/>'
+-            '<path d="M50 20l3-7 3 7-7-1 8 2" stroke="currentColor" stroke-width="2.6" '
+-            'stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".8"/>'
+-            '<circle cx="58" cy="30" r="1.8" fill="currentColor" opacity=".5"/></svg>'),
+-        "name": "Unbounded Consumption",
+-        "accent": "#fbbf24",
+-        "beware": "No budget means no ceiling on cost or damage.",
+-        "summary": "Nothing caps how much the model will generate, cost, or retry, so "
+-                    "cost, latency, or availability blows out.",
+-        "detail": ("Without a token budget, a rate limit, or a recursion guard, a "
+-                   "single request for a huge or self-referential expansion can "
+-                   "consume unbounded compute: a \u201cdenial of wallet\u201d that racks up "
+-                   "cost or takes the service down without touching a traditional "
+-                   "resource-exhaustion bug. It gets worse when the guard that finally "
+-                   "trips fails open: an unhandled error can dump internal debug state, "
+-                   "and an oracle with no query budget can be probed indefinitely to "
+-                   "extract secrets one character at a time (model extraction)."),
++            '<path d="M28.5 12.5c1.5-2.7 5.5-2.7 7 0l19 34c1.5 2.7-0.4 6-3.5 6h-38c-3.1 0-5-3.3-3.5-6z" '
++            'fill="currentColor"/>'
++            '<rect x="29" y="27" width="6" height="15" rx="2.5" fill="#fff"/>'
++            '<circle cx="32" cy="47" r="3.6" fill="#fff"/>'
++            '<rect x="47" y="45" width="7" height="7" fill="currentColor" opacity=".55"/>'
++            '<rect x="55" y="35" width="6" height="6" fill="currentColor" opacity=".4"/>'
++            '<rect x="51" y="55" width="6" height="6" fill="currentColor" opacity=".3"/></svg>'),
++        "name": "Improper Output Handling",
++        "accent": "#2dd4bf",
++        "icon_img": "img/notes/llm05.png",
++        "beware": "Trusting model output is how injection sneaks back in.",
++        "summary": "Model output gets trusted and passed downstream without the "
++                    "validation any other untrusted input would get.",
++        "detail": ("It's tempting to treat an LLM's reply as safe because your own "
++                   "application produced the prompt. But the reply is generated text "
++                   "that can contain markup, code, or commands, especially once user "
++                   "input or retrieved content shapes what the model says. Rendering "
++                   "that output straight into a web page, a shell, a query, or another "
++                   "tool call reopens every classic injection class (XSS, SQLi, command "
++                   "injection) with the model sitting in the middle of it."),
+         "watch_for": [
+-            "No cap on output length, recursion depth, or per-user request cost",
+-            "Error or exception paths that leak internal state once a limit is finally hit",
+-            "An interface answering unlimited structured queries with no rate limit",
++            "Model output inserted into a page via innerHTML or similar without escaping",
++            "Output fed into a shell command, query, or another tool with no sanitisation",
++            "\u201cSecond-order\u201d cases: a stored reply renders unsafely later, not immediately",
+         ],
+     },
+ }
+diff --git a/templates/base.html b/templates/base.html
+index 46c39ab..93a136e 100644
+--- a/templates/base.html
++++ b/templates/base.html
+@@ -30,7 +30,7 @@
+       <a href="{{ url_for('live_zone') }}" class="{% block nav_live %}{% endblock %}" title="Live Zone"><span class="nav-i" aria-hidden="true">⚡</span>Live Zone</a>
+       {% block nav_score_item %}<a href="{{ url_for('scoreboard') }}" class="{% block nav_score %}{% endblock %}" title="Scoreboard"><span class="nav-i" aria-hidden="true">🏆</span>Scoreboard</a>{% endblock %}
+     </nav>
+-    <div class="sidenote">OWASP Top 10<br>for LLM Apps · 2025</div>
++    <div class="sidenote">OWASP Top 10<br>for LLM Apps · 2026</div>
+     <div class="credit">Made by <b>{{ author }}</b><br><span>{{ copyright }}</span></div>
+     <div class="warn">⚠ Intentionally vulnerable.<br>Authorised training only.</div>
+   </aside>
+diff --git a/templates/welcome.html b/templates/welcome.html
+index 4cc5f28..d716d50 100644
+--- a/templates/welcome.html
++++ b/templates/welcome.html
+@@ -491,7 +491,7 @@
+     <div class="sg-dlg-b">
+ 
+       <p class="sg-lede">A deliberately vulnerable training range for the
+-        <b>OWASP Top 10 for LLM Applications (2025)</b>. You learn each weakness by
++        <b>OWASP Top 10 for LLM Applications (2026)</b>. You learn each weakness by
+         exploiting it, then read the defence that would have stopped you.</p>
+       <div class="sg-warn">Every lab is intentionally insecure. Authorised security
+         training only.</div>
+-- 
+2.43.0
+
