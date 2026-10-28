@@ -29,6 +29,24 @@ Treat everything below as the honest state rather than a finished product.
 | Original labs (10 of 21) | `status: needs-build` in `catalog/labs.json`. Not in this repo by design; they are course IP and live elsewhere. |
 | Progress/scoring | Deliberately not unified. LLMVault writes `data/progress.json`, DVAP uses Postgres, MCPGoat has its own runner. Normalising three progress models is its own project and buys little; each lab keeps its own flags. |
 
+## Resource cost per command
+
+Relevant if your machine is already loaded. Nothing here starts a model unless
+you ask for it.
+
+| Command | What it costs |
+| --- | --- |
+| `make setup` | Git clones only. No containers. Minutes, little RAM. |
+| `make up` | One `nginx:alpine` container (~50 MB image). Negligible. |
+| `make lab LAB=1.2.x` | Builds and runs LLMVault (Python/Flask). Light. **No model.** |
+| `make model` | Downloads ~4.7 GB and holds the model in RAM. Opt in only. |
+| `make lab LAB=1.4.1` | LLMVault Live Mode — the one Track 1 lab that needs the model. |
+| `make lab LAB=1.3.x` | Starts DVAP's full stack: Postgres, Redis, Qdrant, API, web, nginx. **Heaviest thing here.** Upstream asks for 16 GB on its own. |
+
+Only `1.4.1` activates the `model` profile. LLMVault's Core and Advanced labs
+are scripted assistants and never call a model, which is why Modules 1.2 runs
+model-free.
+
 ## Design decisions worth knowing
 
 - **Labs get their own localhost ports, not paths behind one proxy.** The

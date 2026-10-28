@@ -49,9 +49,10 @@ services:
       # Live Mode talks to the shared Ollama rather than its own.
       OLLAMA_HOST: "http://ollama:11434"
       OLLAMA_MODEL: "${OLLAMA_MODEL:-llama3.1:8b}"
-    depends_on:
-      ollama:
-        condition: service_healthy
+    # No depends_on for ollama, on purpose. LLMVault's Play Mode labs are
+    # scripted and need no model at all; only Live Mode does. A hard dependency
+    # here would start a multi-GB model server for labs that never call it.
+    # For Live Mode run `make model` first.
     restart: unless-stopped
 
   # ---- DVMCP: vulnerable MCP server (Module 1.3) ----

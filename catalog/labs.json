@@ -1,32 +1,276 @@
 {
-  "track": "Track 1 — AI Security Foundations",
+  "track": "Track 1 \u2014 AI Security Foundations",
   "owasp_edition": "2026 (published 2026-08-03)",
   "note": "stack=none means no container: worksheet labs. status=needs-build means the lab is original to this course and not written yet.",
   "labs": [
-    {"id":"1.1.1","module":"1.1 AI Threat Landscape","title":"Why AI breaks your AppSec intuitions","minutes":25,"model":"none","stack":"none","profiles":[],"url":null,"source":"original (worksheet)","status":"needs-build"},
-    {"id":"1.1.2","module":"1.1 AI Threat Landscape","title":"The three surfaces: model, application, agent","minutes":30,"model":"none","stack":"none","profiles":[],"url":null,"source":"original (worksheet)","status":"needs-build"},
-    {"id":"1.1.3","module":"1.1 AI Threat Landscape","title":"Map the blast radius","minutes":25,"model":"none","stack":"none","profiles":[],"url":null,"source":"original (worksheet)","status":"needs-build"},
-    {"id":"1.1.4","module":"1.1 AI Threat Landscape","title":"Threat-actor and incident view","minutes":20,"model":"none","stack":"none","profiles":[],"url":null,"source":"original (worksheet)","status":"needs-build"},
-
-    {"id":"1.2.1","module":"1.2 OWASP LLM Top 10 (2026)","title":"LLM01 Prompt Injection + LLM02 Sensitive Info Disclosure","minutes":30,"model":"local","stack":"llmvault","profiles":["model","llmvault"],"url":"http://127.0.0.1:8081","source":"LLMVault core: The Obedient Assistant, Redaction Theater","status":"ready"},
-    {"id":"1.2.2","module":"1.2 OWASP LLM Top 10 (2026)","title":"LLM03 Excessive Agency","minutes":30,"model":"hosted-opt","stack":"llmvault","profiles":["model","llmvault"],"url":"http://127.0.0.1:8081","source":"LLMVault core: Keys to the Kingdom; advanced: Confused Deputy","status":"ready"},
-    {"id":"1.2.3","module":"1.2 OWASP LLM Top 10 (2026)","title":"LLM04 Supply Chain + LLM05 Data and Model Poisoning","minutes":25,"model":"none","stack":"llmvault","profiles":["llmvault"],"url":"http://127.0.0.1:8081","source":"LLMVault core: Trust the Manifest?, The Sleeper Phrase","status":"ready"},
-    {"id":"1.2.4","module":"1.2 OWASP LLM Top 10 (2026)","title":"LLM06 Unbounded Consumption (incl. Denial of Wallet)","minutes":25,"model":"local","stack":"llmvault","profiles":["model","llmvault"],"url":"http://127.0.0.1:8081","source":"LLMVault core: Denial of Wallet","status":"ready"},
-    {"id":"1.2.5","module":"1.2 OWASP LLM Top 10 (2026)","title":"LLM07 Misinformation + LLM08 Hidden Context Exposure","minutes":25,"model":"local","stack":"llmvault","profiles":["model","llmvault"],"url":"http://127.0.0.1:8081","source":"LLMVault core: The Yes-Man, Loose Lips","status":"ready"},
-    {"id":"1.2.6","module":"1.2 OWASP LLM Top 10 (2026)","title":"LLM09 Vector/Embedding + LLM10 Improper Output Handling","minutes":25,"model":"local","stack":"llmvault","profiles":["model","llmvault"],"url":"http://127.0.0.1:8081","source":"LLMVault core: Retrieval Without Borders, Rendered Without Question","status":"ready"},
-
-    {"id":"1.3.1","module":"1.3 Agentic AI + MCP","title":"From response to action: the agentic shift","minutes":25,"model":"hosted-opt","stack":"none","profiles":[],"url":null,"source":"original (extends the 1.2 target)","status":"needs-build"},
-    {"id":"1.3.2","module":"1.3 Agentic AI + MCP","title":"Agentic Top 10, part 1","minutes":30,"model":"none","stack":"dvap","profiles":[],"url":"http://127.0.0.1:8080","source":"DVAP: Memory Poisoning, Tool Output Injection, Agent Identity and Trust Abuse","status":"ready"},
-    {"id":"1.3.3","module":"1.3 Agentic AI + MCP","title":"Agentic Top 10, part 2 + cascading failure","minutes":30,"model":"hosted-opt","stack":"dvap","profiles":[],"url":"http://127.0.0.1:8080","source":"DVAP: Multi-Agent Security, Autonomous Agent Security","status":"ready"},
-    {"id":"1.3.4","module":"1.3 Agentic AI + MCP","title":"The MCP risk surface","minutes":30,"model":"local","stack":"dvmcp","profiles":["dvmcp"],"url":null,"source":"DVMCP ch.2 Tool Poisoning, ch.3 Excessive Permissions","status":"unverified"},
-    {"id":"1.3.5","module":"1.3 Agentic AI + MCP","title":"Minimum agentic defenses","minutes":25,"model":"hosted-opt","stack":"none","profiles":[],"url":null,"source":"MCPGoat secure level (license unverified) + original checklist","status":"needs-build"},
-
-    {"id":"1.4.1","module":"1.4 Prompt Injection Taxonomy","title":"Direct injection","minutes":25,"model":"local","stack":"llmvault","profiles":["model","llmvault"],"url":"http://127.0.0.1:8081","source":"LLMVault Live: The Helpdesk Override; advanced: Roleplay Unchained","status":"ready"},
-    {"id":"1.4.2","module":"1.4 Prompt Injection Taxonomy","title":"Indirect injection (document poisoning)","minutes":30,"model":"local","stack":"none","profiles":[],"url":null,"source":"original RAG document-poisoning lab","status":"needs-build"},
-    {"id":"1.4.3","module":"1.4 Prompt Injection Taxonomy","title":"Tool-mediated / agentic injection","minutes":30,"model":"hosted-opt","stack":"dvap","profiles":[],"url":"http://127.0.0.1:8080","source":"DVAP: Tool Output Injection","status":"ready"},
-    {"id":"1.4.4","module":"1.4 Prompt Injection Taxonomy","title":"Defenses and their limits","minutes":25,"model":"local","stack":"none","profiles":[],"url":null,"source":"original","status":"needs-build"},
-    {"id":"1.4.5","module":"1.4 Prompt Injection Taxonomy","title":"Mini-capstone: red-team a target","minutes":30,"model":"hosted-opt","stack":"none","profiles":[],"url":null,"source":"original (reuses 1.4.1–1.4.3 targets)","status":"needs-build"},
-
-    {"id":"capstone","module":"Capstone","title":"Threat-model, exploit, remediate, report","minutes":120,"model":"hosted-opt","stack":"none","profiles":[],"url":null,"source":"original vulnerable RAG + tool + memory app","status":"needs-build"}
+    {
+      "id": "1.1.1",
+      "module": "1.1 AI Threat Landscape",
+      "title": "Why AI breaks your AppSec intuitions",
+      "minutes": 25,
+      "model": "none",
+      "stack": "none",
+      "profiles": [],
+      "url": null,
+      "source": "original (worksheet)",
+      "status": "needs-build"
+    },
+    {
+      "id": "1.1.2",
+      "module": "1.1 AI Threat Landscape",
+      "title": "The three surfaces: model, application, agent",
+      "minutes": 30,
+      "model": "none",
+      "stack": "none",
+      "profiles": [],
+      "url": null,
+      "source": "original (worksheet)",
+      "status": "needs-build"
+    },
+    {
+      "id": "1.1.3",
+      "module": "1.1 AI Threat Landscape",
+      "title": "Map the blast radius",
+      "minutes": 25,
+      "model": "none",
+      "stack": "none",
+      "profiles": [],
+      "url": null,
+      "source": "original (worksheet)",
+      "status": "needs-build"
+    },
+    {
+      "id": "1.1.4",
+      "module": "1.1 AI Threat Landscape",
+      "title": "Threat-actor and incident view",
+      "minutes": 20,
+      "model": "none",
+      "stack": "none",
+      "profiles": [],
+      "url": null,
+      "source": "original (worksheet)",
+      "status": "needs-build"
+    },
+    {
+      "id": "1.2.1",
+      "module": "1.2 OWASP LLM Top 10 (2026)",
+      "title": "LLM01 Prompt Injection + LLM02 Sensitive Info Disclosure",
+      "minutes": 30,
+      "model": "none (scripted; Live Mode optional via `make model`)",
+      "stack": "llmvault",
+      "profiles": [
+        "llmvault"
+      ],
+      "url": "http://127.0.0.1:8081",
+      "source": "LLMVault core: The Obedient Assistant, Redaction Theater",
+      "status": "ready"
+    },
+    {
+      "id": "1.2.2",
+      "module": "1.2 OWASP LLM Top 10 (2026)",
+      "title": "LLM03 Excessive Agency",
+      "minutes": 30,
+      "model": "none (scripted; Live Mode optional via `make model`)",
+      "stack": "llmvault",
+      "profiles": [
+        "llmvault"
+      ],
+      "url": "http://127.0.0.1:8081",
+      "source": "LLMVault core: Keys to the Kingdom; advanced: Confused Deputy",
+      "status": "ready"
+    },
+    {
+      "id": "1.2.3",
+      "module": "1.2 OWASP LLM Top 10 (2026)",
+      "title": "LLM04 Supply Chain + LLM05 Data and Model Poisoning",
+      "minutes": 25,
+      "model": "none (scripted; Live Mode optional via `make model`)",
+      "stack": "llmvault",
+      "profiles": [
+        "llmvault"
+      ],
+      "url": "http://127.0.0.1:8081",
+      "source": "LLMVault core: Trust the Manifest?, The Sleeper Phrase",
+      "status": "ready"
+    },
+    {
+      "id": "1.2.4",
+      "module": "1.2 OWASP LLM Top 10 (2026)",
+      "title": "LLM06 Unbounded Consumption (incl. Denial of Wallet)",
+      "minutes": 25,
+      "model": "none (scripted; Live Mode optional via `make model`)",
+      "stack": "llmvault",
+      "profiles": [
+        "llmvault"
+      ],
+      "url": "http://127.0.0.1:8081",
+      "source": "LLMVault core: Denial of Wallet",
+      "status": "ready"
+    },
+    {
+      "id": "1.2.5",
+      "module": "1.2 OWASP LLM Top 10 (2026)",
+      "title": "LLM07 Misinformation + LLM08 Hidden Context Exposure",
+      "minutes": 25,
+      "model": "none (scripted; Live Mode optional via `make model`)",
+      "stack": "llmvault",
+      "profiles": [
+        "llmvault"
+      ],
+      "url": "http://127.0.0.1:8081",
+      "source": "LLMVault core: The Yes-Man, Loose Lips",
+      "status": "ready"
+    },
+    {
+      "id": "1.2.6",
+      "module": "1.2 OWASP LLM Top 10 (2026)",
+      "title": "LLM09 Vector/Embedding + LLM10 Improper Output Handling",
+      "minutes": 25,
+      "model": "none (scripted; Live Mode optional via `make model`)",
+      "stack": "llmvault",
+      "profiles": [
+        "llmvault"
+      ],
+      "url": "http://127.0.0.1:8081",
+      "source": "LLMVault core: Retrieval Without Borders, Rendered Without Question",
+      "status": "ready"
+    },
+    {
+      "id": "1.3.1",
+      "module": "1.3 Agentic AI + MCP",
+      "title": "From response to action: the agentic shift",
+      "minutes": 25,
+      "model": "hosted-opt",
+      "stack": "none",
+      "profiles": [],
+      "url": null,
+      "source": "original (extends the 1.2 target)",
+      "status": "needs-build"
+    },
+    {
+      "id": "1.3.2",
+      "module": "1.3 Agentic AI + MCP",
+      "title": "Agentic Top 10, part 1",
+      "minutes": 30,
+      "model": "none",
+      "stack": "dvap",
+      "profiles": [],
+      "url": "http://127.0.0.1:8080",
+      "source": "DVAP: Memory Poisoning, Tool Output Injection, Agent Identity and Trust Abuse",
+      "status": "ready"
+    },
+    {
+      "id": "1.3.3",
+      "module": "1.3 Agentic AI + MCP",
+      "title": "Agentic Top 10, part 2 + cascading failure",
+      "minutes": 30,
+      "model": "hosted-opt",
+      "stack": "dvap",
+      "profiles": [],
+      "url": "http://127.0.0.1:8080",
+      "source": "DVAP: Multi-Agent Security, Autonomous Agent Security",
+      "status": "ready"
+    },
+    {
+      "id": "1.3.4",
+      "module": "1.3 Agentic AI + MCP",
+      "title": "The MCP risk surface",
+      "minutes": 30,
+      "model": "local",
+      "stack": "dvmcp",
+      "profiles": [
+        "dvmcp"
+      ],
+      "url": null,
+      "source": "DVMCP ch.2 Tool Poisoning, ch.3 Excessive Permissions",
+      "status": "unverified"
+    },
+    {
+      "id": "1.3.5",
+      "module": "1.3 Agentic AI + MCP",
+      "title": "Minimum agentic defenses",
+      "minutes": 25,
+      "model": "hosted-opt",
+      "stack": "none",
+      "profiles": [],
+      "url": null,
+      "source": "MCPGoat secure level (license unverified) + original checklist",
+      "status": "needs-build"
+    },
+    {
+      "id": "1.4.1",
+      "module": "1.4 Prompt Injection Taxonomy",
+      "title": "Direct injection",
+      "minutes": 25,
+      "model": "local (LLMVault Live Mode \u2014 needs `make model`)",
+      "stack": "llmvault",
+      "profiles": [
+        "model",
+        "llmvault"
+      ],
+      "url": "http://127.0.0.1:8081",
+      "source": "LLMVault Live: The Helpdesk Override; advanced: Roleplay Unchained",
+      "status": "ready"
+    },
+    {
+      "id": "1.4.2",
+      "module": "1.4 Prompt Injection Taxonomy",
+      "title": "Indirect injection (document poisoning)",
+      "minutes": 30,
+      "model": "local",
+      "stack": "none",
+      "profiles": [],
+      "url": null,
+      "source": "original RAG document-poisoning lab",
+      "status": "needs-build"
+    },
+    {
+      "id": "1.4.3",
+      "module": "1.4 Prompt Injection Taxonomy",
+      "title": "Tool-mediated / agentic injection",
+      "minutes": 30,
+      "model": "hosted-opt",
+      "stack": "dvap",
+      "profiles": [],
+      "url": "http://127.0.0.1:8080",
+      "source": "DVAP: Tool Output Injection",
+      "status": "ready"
+    },
+    {
+      "id": "1.4.4",
+      "module": "1.4 Prompt Injection Taxonomy",
+      "title": "Defenses and their limits",
+      "minutes": 25,
+      "model": "local",
+      "stack": "none",
+      "profiles": [],
+      "url": null,
+      "source": "original",
+      "status": "needs-build"
+    },
+    {
+      "id": "1.4.5",
+      "module": "1.4 Prompt Injection Taxonomy",
+      "title": "Mini-capstone: red-team a target",
+      "minutes": 30,
+      "model": "hosted-opt",
+      "stack": "none",
+      "profiles": [],
+      "url": null,
+      "source": "original (reuses 1.4.1\u20131.4.3 targets)",
+      "status": "needs-build"
+    },
+    {
+      "id": "capstone",
+      "module": "Capstone",
+      "title": "Threat-model, exploit, remediate, report",
+      "minutes": 120,
+      "model": "hosted-opt",
+      "stack": "none",
+      "profiles": [],
+      "url": null,
+      "source": "original vulnerable RAG + tool + memory app",
+      "status": "needs-build"
+    }
   ]
 }
