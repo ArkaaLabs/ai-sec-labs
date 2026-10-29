@@ -38,21 +38,24 @@ services:
       timeout: 5s
       retries: 12
 
-  # ---- LLMVault: OWASP LLM Top 10 range (Modules 1.2, 1.4) ----
-  llmvault:
+  # ---- range: the lab host. One app, one UI, every vendored lab. ----
+  range:
     build:
-      context: ./upstream/llmvault
-    profiles: [llmvault]
+      context: ./host
+    profiles: [range]
     ports:
-      - "127.0.0.1:${LLMVAULT_PORT:-8081}:5000"
+      - "127.0.0.1:${RANGE_PORT:-8081}:5000"
     environment:
-      # Live Mode talks to the shared Ollama rather than its own.
+      # Live Mode talks to the shared Ollama. Scripted labs ignore this entirely.
       OLLAMA_HOST: "http://ollama:11434"
-      OLLAMA_MODEL: "${OLLAMA_MODEL:-llama3.1:8b}"
-    # No depends_on for ollama, on purpose. LLMVault's Play Mode labs are
-    # scripted and need no model at all; only Live Mode does. A hard dependency
-    # here would start a multi-GB model server for labs that never call it.
-    # For Live Mode run `make model` first.
+      OLLAMA_DEFAULT_MODEL: "${OLLAMA_MODEL:-llama3.1:8b}"
+      # Set these for a cohort so flags and solutions are not the public defaults.
+      ARKAA_PEPPER: "${ARKAA_PEPPER:-}"
+      ARKAA_SOLUTION_KEY: "${ARKAA_SOLUTION_KEY:-}"
+    volumes:
+      - range_data:/app/data
+    # No depends_on for ollama, on purpose: most labs are scripted and never
+    # call a model. Run `make model` first only for Live Mode labs.
     restart: unless-stopped
 
   # ---- DVMCP: vulnerable MCP server (Module 1.3) ----
@@ -69,3 +72,4 @@ services:
 
 volumes:
   ollama:
+  range_data:

@@ -1,7 +1,7 @@
 {
   "track": "Track 1 \u2014 AI Security Foundations",
   "owasp_edition": "2026 (published 2026-08-03)",
-  "note": "stack=none means no container: worksheet labs. status=needs-build means the lab is original to this course and not written yet.",
+  "note": "One host serves every container lab: stack=range. stack=none means a worksheet. pack=public ships in this repo; pack=private ships in the paid Track 1 pack. status=needs-build means not written yet.",
   "labs": [
     {
       "id": "1.1.1",
@@ -12,8 +12,9 @@
       "stack": "none",
       "profiles": [],
       "url": null,
-      "source": "original (worksheet)",
-      "status": "needs-build"
+      "source": "original worksheet (Track 1 pack, module-1.1)",
+      "status": "ready",
+      "pack": "private"
     },
     {
       "id": "1.1.2",
@@ -24,8 +25,9 @@
       "stack": "none",
       "profiles": [],
       "url": null,
-      "source": "original (worksheet)",
-      "status": "needs-build"
+      "source": "original worksheet (Track 1 pack, module-1.1)",
+      "status": "ready",
+      "pack": "private"
     },
     {
       "id": "1.1.3",
@@ -36,8 +38,9 @@
       "stack": "none",
       "profiles": [],
       "url": null,
-      "source": "original (worksheet)",
-      "status": "needs-build"
+      "source": "original worksheet (Track 1 pack, module-1.1)",
+      "status": "ready",
+      "pack": "private"
     },
     {
       "id": "1.1.4",
@@ -48,8 +51,9 @@
       "stack": "none",
       "profiles": [],
       "url": null,
-      "source": "original (worksheet)",
-      "status": "needs-build"
+      "source": "original worksheet (Track 1 pack, module-1.1)",
+      "status": "ready",
+      "pack": "private"
     },
     {
       "id": "1.2.1",
@@ -57,13 +61,14 @@
       "title": "LLM01 Prompt Injection + LLM02 Sensitive Info Disclosure",
       "minutes": 30,
       "model": "none (scripted; Live Mode optional via `make model`)",
-      "stack": "llmvault",
+      "stack": "range",
       "profiles": [
-        "llmvault"
+        "range"
       ],
       "url": "http://127.0.0.1:8081",
       "source": "LLMVault core: The Obedient Assistant, Redaction Theater",
-      "status": "ready"
+      "status": "ready",
+      "pack": "public"
     },
     {
       "id": "1.2.2",
@@ -71,13 +76,14 @@
       "title": "LLM03 Excessive Agency",
       "minutes": 30,
       "model": "none (scripted; Live Mode optional via `make model`)",
-      "stack": "llmvault",
+      "stack": "range",
       "profiles": [
-        "llmvault"
+        "range"
       ],
       "url": "http://127.0.0.1:8081",
       "source": "LLMVault core: Keys to the Kingdom; advanced: Confused Deputy",
-      "status": "ready"
+      "status": "ready",
+      "pack": "public"
     },
     {
       "id": "1.2.3",
@@ -85,13 +91,14 @@
       "title": "LLM04 Supply Chain + LLM05 Data and Model Poisoning",
       "minutes": 25,
       "model": "none (scripted; Live Mode optional via `make model`)",
-      "stack": "llmvault",
+      "stack": "range",
       "profiles": [
-        "llmvault"
+        "range"
       ],
       "url": "http://127.0.0.1:8081",
       "source": "LLMVault core: Trust the Manifest?, The Sleeper Phrase",
-      "status": "ready"
+      "status": "ready",
+      "pack": "public"
     },
     {
       "id": "1.2.4",
@@ -99,13 +106,14 @@
       "title": "LLM06 Unbounded Consumption (incl. Denial of Wallet)",
       "minutes": 25,
       "model": "none (scripted; Live Mode optional via `make model`)",
-      "stack": "llmvault",
+      "stack": "range",
       "profiles": [
-        "llmvault"
+        "range"
       ],
       "url": "http://127.0.0.1:8081",
       "source": "LLMVault core: Denial of Wallet",
-      "status": "ready"
+      "status": "ready",
+      "pack": "public"
     },
     {
       "id": "1.2.5",
@@ -113,13 +121,14 @@
       "title": "LLM07 Misinformation + LLM08 Hidden Context Exposure",
       "minutes": 25,
       "model": "none (scripted; Live Mode optional via `make model`)",
-      "stack": "llmvault",
+      "stack": "range",
       "profiles": [
-        "llmvault"
+        "range"
       ],
       "url": "http://127.0.0.1:8081",
       "source": "LLMVault core: The Yes-Man, Loose Lips",
-      "status": "ready"
+      "status": "ready",
+      "pack": "public"
     },
     {
       "id": "1.2.6",
@@ -127,13 +136,14 @@
       "title": "LLM09 Vector/Embedding + LLM10 Improper Output Handling",
       "minutes": 25,
       "model": "none (scripted; Live Mode optional via `make model`)",
-      "stack": "llmvault",
+      "stack": "range",
       "profiles": [
-        "llmvault"
+        "range"
       ],
       "url": "http://127.0.0.1:8081",
       "source": "LLMVault core: Retrieval Without Borders, Rendered Without Question",
-      "status": "ready"
+      "status": "ready",
+      "pack": "public"
     },
     {
       "id": "1.3.1",
@@ -145,7 +155,8 @@
       "profiles": [],
       "url": null,
       "source": "original (extends the 1.2 target)",
-      "status": "needs-build"
+      "status": "needs-build",
+      "pack": "private"
     },
     {
       "id": "1.3.2",
@@ -153,11 +164,12 @@
       "title": "Agentic Top 10, part 1",
       "minutes": 30,
       "model": "none",
-      "stack": "dvap",
+      "stack": "none",
       "profiles": [],
-      "url": "http://127.0.0.1:8080",
-      "source": "DVAP: Memory Poisoning, Tool Output Injection, Agent Identity and Trust Abuse",
-      "status": "ready"
+      "url": null,
+      "source": "reimplement as a range module (concept from DVAP, Apache-2.0, credited)",
+      "status": "needs-build",
+      "pack": "private"
     },
     {
       "id": "1.3.3",
@@ -165,11 +177,12 @@
       "title": "Agentic Top 10, part 2 + cascading failure",
       "minutes": 30,
       "model": "hosted-opt",
-      "stack": "dvap",
+      "stack": "none",
       "profiles": [],
-      "url": "http://127.0.0.1:8080",
-      "source": "DVAP: Multi-Agent Security, Autonomous Agent Security",
-      "status": "ready"
+      "url": null,
+      "source": "reimplement as a range module (concept from DVAP, Apache-2.0, credited)",
+      "status": "needs-build",
+      "pack": "private"
     },
     {
       "id": "1.3.4",
@@ -183,7 +196,8 @@
       ],
       "url": null,
       "source": "DVMCP ch.2 Tool Poisoning, ch.3 Excessive Permissions",
-      "status": "unverified"
+      "status": "unverified",
+      "pack": "public"
     },
     {
       "id": "1.3.5",
@@ -195,7 +209,8 @@
       "profiles": [],
       "url": null,
       "source": "MCPGoat secure level (license unverified) + original checklist",
-      "status": "needs-build"
+      "status": "needs-build",
+      "pack": "private"
     },
     {
       "id": "1.4.1",
@@ -203,14 +218,15 @@
       "title": "Direct injection",
       "minutes": 25,
       "model": "local (LLMVault Live Mode \u2014 needs `make model`)",
-      "stack": "llmvault",
+      "stack": "range",
       "profiles": [
         "model",
-        "llmvault"
+        "range"
       ],
       "url": "http://127.0.0.1:8081",
       "source": "LLMVault Live: The Helpdesk Override; advanced: Roleplay Unchained",
-      "status": "ready"
+      "status": "ready",
+      "pack": "public"
     },
     {
       "id": "1.4.2",
@@ -222,7 +238,8 @@
       "profiles": [],
       "url": null,
       "source": "original RAG document-poisoning lab",
-      "status": "needs-build"
+      "status": "needs-build",
+      "pack": "private"
     },
     {
       "id": "1.4.3",
@@ -230,11 +247,12 @@
       "title": "Tool-mediated / agentic injection",
       "minutes": 30,
       "model": "hosted-opt",
-      "stack": "dvap",
+      "stack": "none",
       "profiles": [],
-      "url": "http://127.0.0.1:8080",
-      "source": "DVAP: Tool Output Injection",
-      "status": "ready"
+      "url": null,
+      "source": "reimplement as a range module (concept from DVAP, Apache-2.0, credited)",
+      "status": "needs-build",
+      "pack": "private"
     },
     {
       "id": "1.4.4",
@@ -246,7 +264,8 @@
       "profiles": [],
       "url": null,
       "source": "original",
-      "status": "needs-build"
+      "status": "needs-build",
+      "pack": "private"
     },
     {
       "id": "1.4.5",
@@ -258,7 +277,8 @@
       "profiles": [],
       "url": null,
       "source": "original (reuses 1.4.1\u20131.4.3 targets)",
-      "status": "needs-build"
+      "status": "needs-build",
+      "pack": "private"
     },
     {
       "id": "capstone",
@@ -270,7 +290,9 @@
       "profiles": [],
       "url": null,
       "source": "original vulnerable RAG + tool + memory app",
-      "status": "needs-build"
+      "status": "needs-build",
+      "pack": "private"
     }
-  ]
+  ],
+  "host": "ARKAA AI Security Range (built on LLMVault, MIT) \u2014 http://127.0.0.1:8081"
 }

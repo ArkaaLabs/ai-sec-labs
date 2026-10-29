@@ -27,13 +27,14 @@ fetch('labs.json').then(r => r.json()).then(d => {
   let html = '';
   for (const [mod, labs] of Object.entries(byModule)) {
     html += '<table><caption>' + esc(mod) + '</caption><tr>' +
-      '<th>Lab</th><th>Title</th><th>Min</th><th>Status</th><th>Start</th><th>Open</th><th>Target</th></tr>';
+      '<th>Lab</th><th>Title</th><th>Min</th><th>Status</th><th>Pack</th><th>Start</th><th>Open</th><th>Target</th></tr>';
     for (const l of labs) {
       html += '<tr>' +
         '<td><code>' + esc(l.id) + '</code></td>' +
         '<td>' + esc(l.title) + '</td>' +
         '<td>' + esc(l.minutes) + '</td>' +
         '<td class="' + esc(l.status) + '">' + esc(l.status) + '</td>' +
+        '<td>' + esc(l.pack || 'public') + '</td>' +
         '<td><code>make lab LAB=' + esc(l.id) + '</code></td>' +
         '<td>' + (l.url ? '<a href="' + esc(l.url) + '">open</a>' : '—') + '</td>' +
         '<td class="meta">' + esc(l.source) + '</td>' +

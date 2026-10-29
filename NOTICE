@@ -1,10 +1,17 @@
 ai-sec-labs
 Copyright 2026 ARKAA Labs
 
-This product includes software developed by third parties. It orchestrates,
-but does not vendor, the upstream projects listed in ATTRIBUTION.md. Those
-projects are fetched at build time under their own licenses and remain the
-work of their respective authors.
+This product includes software developed by third parties.
+
+The lab host in host/ is a derivative work of LLMVault
+(https://github.com/CyberSunil/LLMVault), Copyright (c) 2026 CyberSunil,
+licensed under the MIT License. The full MIT text and original copyright
+notice are retained at host/LICENSE. LLMVault's name, logo, artwork and
+documentation are excluded from that MIT grant by its TRADEMARKS.md and are
+not used in this product.
+
+See ATTRIBUTION.md for the complete list of upstream projects, what was taken
+from each, and what was deliberately excluded.
 
 This file is provided to satisfy Section 4(d) of the Apache License, Version
 2.0, under which this repository is distributed.
